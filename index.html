@@ -2050,6 +2050,18 @@
                             </button>
                         </div>
                     </div>
+                    
+                    <div style="border-top:1px solid #2d4a6f;padding-top:1rem;margin-top:1rem;">
+                        <h4 style="color:#94a3b8;font-size:0.9rem;margin-bottom:0.75rem;">🔧 Ferramentas</h4>
+                        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                            <button class="btn-secondary" onclick="verificarUsuariosCadastrados()" style="font-size:0.8rem;">
+                                🔍 Verificar Usuários
+                            </button>
+                            <button class="btn-secondary" onclick="testarLoginUsuario()" style="font-size:0.8rem;">
+                                🧪 Testar Login
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 
                 <h3 style="color: #ef4444; margin-bottom: 1rem;">⚠️ Zona de Perigo</h3>
@@ -2333,6 +2345,17 @@
                     showNotification(`Bem-vindo, ${user.name}!`, 'success');
                 }
             } else {
+                // Verificar se usuário existe para dar feedback mais específico
+                const userExists = users.find(u => u.username.toLowerCase() === username);
+                
+                if (userExists) {
+                    document.getElementById('login-error').textContent = 'Senha incorreta. Verifique e tente novamente.';
+                } else if (users.length === 0) {
+                    document.getElementById('login-error').textContent = 'Nenhum usuário cadastrado. Importe os dados primeiro.';
+                } else {
+                    document.getElementById('login-error').textContent = 'Usuário não encontrado neste dispositivo.';
+                }
+                
                 document.getElementById('login-error').classList.add('show');
                 document.getElementById('login-pass').value = '';
             }
@@ -3486,6 +3509,55 @@
             const emp = empresaVinculada ? empresas.find(e => e.cnpj === empresaVinculada) : null;
             const empNome = emp ? ` (${emp.fantasia || emp.razao})` : '';
             showNotification(`Usuário ${name}${empNome} criado com sucesso!`, 'success');
+        }
+        
+        function verificarUsuariosCadastrados() {
+            const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+            
+            if (users.length === 0) {
+                alert('❌ Nenhum usuário cadastrado!\n\nO sistema irá criar os usuários padrão.');
+                initUsers();
+                loadUsersList();
+                return;
+            }
+            
+            let info = '📋 USUÁRIOS CADASTRADOS\n\n';
+            users.forEach((u, i) => {
+                const emp = u.empresaVinculada ? empresas.find(e => e.cnpj === u.empresaVinculada) : null;
+                info += `${i + 1}. ${u.name}\n`;
+                info += `   Login: ${u.username}\n`;
+                info += `   Tipo: ${u.role === 'dev' ? 'DEV' : 'USER'}\n`;
+                info += `   Empresa: ${emp ? emp.fantasia || emp.razao : 'Nenhuma'}\n`;
+                info += `   Senha: ${u.password.substring(0, 3)}***\n\n`;
+            });
+            
+            info += '💡 Se a senha está incorreta, use "Alterar Senha" acima.';
+            
+            alert(info);
+        }
+        
+        function testarLoginUsuario() {
+            const username = prompt('Digite o nome de usuário (login):');
+            if (!username) return;
+            
+            const senha = prompt('Digite a senha:');
+            if (!senha) return;
+            
+            const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+            const user = users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === senha);
+            
+            if (user) {
+                alert(`✅ LOGIN VÁLIDO!\n\nUsuário: ${user.name}\nLogin: ${user.username}\nTipo: ${user.role}\n\nO login está funcionando corretamente.`);
+            } else {
+                // Verificar se usuário existe
+                const userExists = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+                
+                if (userExists) {
+                    alert(`❌ SENHA INCORRETA!\n\nO usuário "${username}" existe, mas a senha está errada.\n\nSenha cadastrada começa com: ${userExists.password.substring(0, 3)}***\n\n💡 Use "Alterar Senha" para redefinir.`);
+                } else {
+                    alert(`❌ USUÁRIO NÃO ENCONTRADO!\n\nO usuário "${username}" não está cadastrado neste dispositivo.\n\nUsuários disponíveis:\n${users.map(u => '• ' + u.username).join('\n')}\n\n💡 Se você cadastrou em outro dispositivo, importe os dados primeiro.`);
+                }
+            }
         }
         
         function deleteUser(username) {
