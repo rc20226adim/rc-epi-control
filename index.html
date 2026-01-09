@@ -1220,6 +1220,16 @@
                 </button>
             </form>
             
+            <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid #2d4a6f;">
+                <p style="color:#94a3b8;font-size:0.8rem;text-align:center;margin-bottom:0.75rem;">
+                    📱 Primeiro acesso neste dispositivo?
+                </p>
+                <button type="button" onclick="document.getElementById('import-sync-login').click()" style="width:100%;padding:0.75rem;background:#1e3a5f;border:1px solid #2d4a6f;border-radius:8px;color:#60a5fa;font-size:0.9rem;cursor:pointer;">
+                    📥 Importar Dados de Outro Dispositivo
+                </button>
+                <input type="file" id="import-sync-login" accept=".json" style="display:none" onchange="importarSincronizacaoLogin(event)">
+            </div>
+            
             <div class="login-footer">
                 <p>RC Engenharia Saúde e Segurança Ocupacional</p>
                 <p>© 2026 - Todos os direitos reservados</p>
@@ -1331,6 +1341,25 @@
                 </svg>
                 Registrar Entrega de EPI
             </h2>
+            
+            <!-- Banner de Sincronização -->
+            <div id="sync-banner" class="info-box hidden" style="border-left-color:#f59e0b;background:rgba(245,158,11,0.1);margin-bottom:1rem;">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+                    <div>
+                        <p style="font-weight:600;color:#f59e0b;">🔄 Novo dispositivo detectado</p>
+                        <p style="font-size:0.85rem;color:#94a3b8;">Se você já tem dados em outro dispositivo, importe o arquivo de sincronização.</p>
+                    </div>
+                    <div style="display:flex;gap:0.5rem;">
+                        <button type="button" class="btn-primary" onclick="document.getElementById('import-sync-banner').click()" style="background:#f59e0b;">
+                            📥 Importar Dados
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="fecharBannerSync()" style="padding:0.5rem;">
+                            ✕
+                        </button>
+                    </div>
+                </div>
+                <input type="file" id="import-sync-banner" accept=".json" style="display:none" onchange="importarSincronizacao(event)">
+            </div>
             
             <div class="info-box">
                 <p>✍️ <strong>Assinatura por Entrega:</strong> Cada EPI entregue terá sua própria assinatura com data e hora registradas no PDF.</p>
@@ -1627,6 +1656,19 @@
                 Gestão de Estoque de EPIs
             </h2>
             
+            <!-- Filtro por Empresa -->
+            <div class="info-box" style="border-left-color:#2563eb;margin-bottom:1.5rem;">
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+                    <div>
+                        <p style="font-weight:600;margin-bottom:0.25rem;">🏢 Estoque por Empresa</p>
+                        <p style="font-size:0.85rem;color:#64748b;">Cada empresa possui seu próprio estoque de EPIs</p>
+                    </div>
+                    <select id="estoque-empresa-select" class="field-input" style="max-width:300px;" onchange="filtrarEstoquePorEmpresa()">
+                        <option value="">Selecione uma empresa...</option>
+                    </select>
+                </div>
+            </div>
+            
             <!-- Resumo do Estoque -->
             <div id="estoque-resumo" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:1.5rem;">
                 <div style="background:#0f172a;padding:1rem;border-radius:10px;text-align:center;">
@@ -1643,6 +1685,13 @@
                 </div>
             </div>
             
+            <!-- Aviso sem empresa selecionada -->
+            <div id="estoque-sem-empresa" style="background:#0f172a;border-radius:12px;padding:2rem;text-align:center;margin-bottom:1.5rem;">
+                <div style="font-size:3rem;margin-bottom:1rem;">🏢</div>
+                <h3 style="color:#e2e8f0;margin-bottom:0.5rem;">Selecione uma Empresa</h3>
+                <p style="color:#64748b;">Para gerenciar o estoque, primeiro selecione a empresa acima.</p>
+            </div>
+            
             <!-- Alertas de Estoque Baixo -->
             <div id="alertas-estoque" class="hidden" style="background:rgba(239,68,68,0.1);border:1px solid #ef4444;border-radius:10px;padding:1rem;margin-bottom:1.5rem;">
                 <h4 style="color:#ef4444;margin-bottom:0.75rem;display:flex;align-items:center;gap:0.5rem;">
@@ -1656,7 +1705,7 @@
             </div>
             
             <!-- Formulário de Cadastro de EPI -->
-            <div style="background:#0f172a;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;">
+            <div id="form-estoque-container" class="hidden" style="background:#0f172a;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;">
                 <h3 style="color:#2563eb;margin-bottom:1rem;font-size:1rem;">Cadastrar Novo EPI no Estoque</h3>
                 <form id="form-estoque" onsubmit="cadastrarEPIEstoque(event)">
                     <div class="form-grid">
@@ -1764,7 +1813,19 @@
                         <circle cx="9" cy="7" r="4"/>
                     </svg>
                 </div>
-                <h3>Nenhum funcionário</h3>
+                <h3>Nenhum funcionário encontrado</h3>
+                <p style="color:#94a3b8;font-size:0.9rem;margin-top:0.5rem;max-width:400px;">
+                    Se você já tem dados em outro dispositivo, importe o arquivo de sincronização.
+                </p>
+                <div style="display:flex;gap:0.5rem;margin-top:1rem;flex-wrap:wrap;justify-content:center;">
+                    <button class="btn-primary" onclick="document.getElementById('import-sync-func').click()">
+                        📥 Importar Dados
+                    </button>
+                    <button class="btn-secondary" onclick="showTab('cadastro')">
+                        ➕ Cadastrar Entrega
+                    </button>
+                </div>
+                <input type="file" id="import-sync-func" accept=".json" style="display:none" onchange="importarSincronizacao(event)">
             </div>
         </div>
 
@@ -1793,7 +1854,7 @@
             </div>
             
             <!-- Resumo -->
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:1.5rem;">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1rem;margin-bottom:1.5rem;">
                 <div style="background:#0f172a;padding:1rem;border-radius:10px;text-align:center;">
                     <div style="font-size:2rem;font-weight:700;color:#2563eb;font-family:'JetBrains Mono',monospace;" id="total-empresas">0</div>
                     <div style="font-size:0.8rem;color:#64748b;text-transform:uppercase;">Empresas</div>
@@ -1801,6 +1862,9 @@
                 <div style="background:#0f172a;padding:1rem;border-radius:10px;text-align:center;">
                     <div style="font-size:2rem;font-weight:700;color:#10b981;font-family:'JetBrains Mono',monospace;" id="total-entregas-empresas">0</div>
                     <div style="font-size:0.8rem;color:#64748b;text-transform:uppercase;">Entregas</div>
+                </div>
+                <div id="empresas-stats-extra" style="display:contents;">
+                    <!-- Estatísticas extras serão inseridas via JS -->
                 </div>
             </div>
             
@@ -2144,7 +2208,83 @@
                 const dataEntrega = document.getElementById('dataEntrega');
                 if (dataEntrega) dataEntrega.value = new Date().toISOString().split('T')[0];
                 updateUI();
+                
+                // Verificar se precisa mostrar banner de sincronização
+                checkSyncBanner();
             }, 100);
+        }
+        
+        function checkSyncBanner() {
+            const banner = document.getElementById('sync-banner');
+            if (!banner) return;
+            
+            // Verificar se já foi fechado nesta sessão
+            const bannerClosed = sessionStorage.getItem('sync-banner-closed');
+            
+            // Mostrar banner se não há dados e não foi fechado
+            if (entregas.length === 0 && empresas.length === 0 && !bannerClosed) {
+                banner.classList.remove('hidden');
+            } else {
+                banner.classList.add('hidden');
+            }
+        }
+        
+        function fecharBannerSync() {
+            const banner = document.getElementById('sync-banner');
+            if (banner) banner.classList.add('hidden');
+            sessionStorage.setItem('sync-banner-closed', 'true');
+        }
+        
+        function importarSincronizacaoLogin(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (!data.dados) {
+                        throw new Error('Formato inválido');
+                    }
+                    
+                    const info = `📦 IMPORTAR DADOS\n\nArquivo: ${file.name}\nData: ${data.dataExportacao ? new Date(data.dataExportacao).toLocaleString('pt-BR') : 'N/A'}\n\nConteúdo:\n- Entregas: ${data.dados.entregas?.length || 0}\n- Estoque: ${data.dados.estoque?.length || 0}\n- Empresas: ${data.dados.empresas?.length || 0}\n- Usuários: ${data.dados.usuarios?.length || 0}\n\nDeseja importar estes dados?`;
+                    
+                    if (!confirm(info)) return;
+                    
+                    // Importar dados
+                    if (data.dados.entregas) {
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(data.dados.entregas));
+                    }
+                    
+                    if (data.dados.estoque) {
+                        localStorage.setItem(ESTOQUE_KEY, JSON.stringify(data.dados.estoque));
+                    }
+                    
+                    if (data.dados.empresas) {
+                        localStorage.setItem(EMPRESAS_KEY, JSON.stringify(data.dados.empresas));
+                    }
+                    
+                    if (data.dados.config) {
+                        localStorage.setItem(CONFIG_KEY, JSON.stringify(data.dados.config));
+                    }
+                    
+                    if (data.dados.usuarios && data.dados.usuarios.length > 0) {
+                        localStorage.setItem(USERS_KEY, JSON.stringify(data.dados.usuarios));
+                    }
+                    
+                    alert('✅ Dados importados com sucesso!\n\nAgora faça login para acessar o sistema.');
+                    
+                    // Recarregar página para aplicar os dados
+                    location.reload();
+                    
+                } catch(err) {
+                    console.error('Erro na importação:', err);
+                    alert('❌ Arquivo inválido. Verifique se é um arquivo de sincronização válido.');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
         }
         
         // Processar login
@@ -2410,20 +2550,75 @@
             } catch (e) { return false; }
         }
         
-        function updateEstoqueUI() {
-            // Resumo
-            document.getElementById('total-itens-estoque').textContent = estoque.length;
-            document.getElementById('total-em-estoque').textContent = estoque.reduce((sum, e) => sum + e.quantidade, 0);
+        let estoqueEmpresaSelecionada = null;
+        
+        function filtrarEstoquePorEmpresa() {
+            const select = document.getElementById('estoque-empresa-select');
+            const cnpj = select ? select.value : '';
+            estoqueEmpresaSelecionada = cnpj || null;
             
-            const abaixoMinimo = estoque.filter(e => e.quantidade < e.estoqueMinimo);
+            const semEmpresa = document.getElementById('estoque-sem-empresa');
+            const formContainer = document.getElementById('form-estoque-container');
+            const listaContainer = document.getElementById('lista-estoque');
+            const emptyEstoque = document.getElementById('empty-estoque');
+            
+            if (!cnpj) {
+                // Nenhuma empresa selecionada
+                if (semEmpresa) semEmpresa.style.display = 'block';
+                if (formContainer) formContainer.classList.add('hidden');
+                if (listaContainer) listaContainer.innerHTML = '';
+                if (emptyEstoque) emptyEstoque.classList.add('hidden');
+                
+                // Zerar estatísticas
+                document.getElementById('total-itens-estoque').textContent = '0';
+                document.getElementById('total-em-estoque').textContent = '0';
+                document.getElementById('itens-abaixo-minimo').textContent = '0';
+                document.getElementById('alertas-estoque').classList.add('hidden');
+            } else {
+                // Empresa selecionada
+                if (semEmpresa) semEmpresa.style.display = 'none';
+                if (formContainer) formContainer.classList.remove('hidden');
+                updateEstoqueUI();
+            }
+        }
+        
+        function getEstoqueEmpresa() {
+            if (!estoqueEmpresaSelecionada) return [];
+            return estoque.filter(e => e.cnpj === estoqueEmpresaSelecionada);
+        }
+        
+        function updateEstoqueUI() {
+            // Atualizar select de empresas
+            const selectEstoque = document.getElementById('estoque-empresa-select');
+            if (selectEstoque && empresas.length > 0) {
+                const valorAtual = selectEstoque.value;
+                selectEstoque.innerHTML = '<option value="">Selecione uma empresa...</option>' +
+                    empresas.map(e => `<option value="${e.cnpj}" ${e.cnpj === valorAtual ? 'selected' : ''}>${e.fantasia || e.razao}</option>`).join('');
+            }
+            
+            // Se não há empresa selecionada, não continuar
+            if (!estoqueEmpresaSelecionada) {
+                filtrarEstoquePorEmpresa();
+                return;
+            }
+            
+            // Filtrar estoque pela empresa selecionada
+            const estoqueEmpresa = getEstoqueEmpresa();
+            
+            // Resumo
+            document.getElementById('total-itens-estoque').textContent = estoqueEmpresa.length;
+            document.getElementById('total-em-estoque').textContent = estoqueEmpresa.reduce((sum, e) => sum + e.quantidade, 0);
+            
+            const abaixoMinimo = estoqueEmpresa.filter(e => e.quantidade < e.estoqueMinimo);
             document.getElementById('itens-abaixo-minimo').textContent = abaixoMinimo.length;
             
-            // Badge no header
+            // Badge no header (considera todas empresas)
+            const todoAbaixoMinimo = estoque.filter(e => e.quantidade < e.estoqueMinimo);
             const badgeEstoque = document.getElementById('badge-estoque-baixo');
             const statsEstoque = document.getElementById('stats-estoque-baixo');
-            if (abaixoMinimo.length > 0) {
+            if (todoAbaixoMinimo.length > 0) {
                 badgeEstoque.style.display = 'flex';
-                statsEstoque.textContent = abaixoMinimo.length;
+                statsEstoque.textContent = todoAbaixoMinimo.length;
             } else {
                 badgeEstoque.style.display = 'none';
             }
@@ -2462,7 +2657,10 @@
             const busca = document.getElementById('busca-estoque')?.value.toLowerCase() || '';
             const filtro = document.getElementById('filtro-estoque')?.value || '';
             
-            let itens = estoque.filter(e => {
+            // Filtrar pelo estoque da empresa selecionada
+            const estoqueEmpresa = getEstoqueEmpresa();
+            
+            let itens = estoqueEmpresa.filter(e => {
                 const matchBusca = e.descricao.toLowerCase().includes(busca) || e.ca.includes(busca);
                 let matchFiltro = true;
                 
@@ -2476,7 +2674,7 @@
             const container = document.getElementById('lista-estoque');
             const empty = document.getElementById('empty-estoque');
             
-            if (itens.length === 0 && estoque.length === 0) {
+            if (itens.length === 0 && estoqueEmpresa.length === 0) {
                 container.innerHTML = '';
                 empty.classList.remove('hidden');
                 return;
@@ -2564,8 +2762,15 @@
         function cadastrarEPIEstoque(e) {
             e.preventDefault();
             
+            // Verificar se empresa está selecionada
+            if (!estoqueEmpresaSelecionada) {
+                showNotification('Selecione uma empresa primeiro!', 'error');
+                return;
+            }
+            
             const novoEPI = {
                 id: Date.now().toString(),
+                cnpj: estoqueEmpresaSelecionada, // Vincular à empresa
                 descricao: document.getElementById('est-descricao').value,
                 ca: document.getElementById('est-ca').value,
                 quantidade: parseInt(document.getElementById('est-quantidade').value) || 0,
@@ -2581,9 +2786,9 @@
                 dataCadastro: new Date().toISOString()
             };
             
-            // Verificar se CA já existe
-            if (estoque.some(e => e.ca === novoEPI.ca)) {
-                showNotification('CA já cadastrado!', 'error');
+            // Verificar se CA já existe NESTA EMPRESA
+            if (estoque.some(e => e.ca === novoEPI.ca && e.cnpj === estoqueEmpresaSelecionada)) {
+                showNotification('CA já cadastrado nesta empresa!', 'error');
                 return;
             }
             
@@ -2811,9 +3016,27 @@
         }
         
         // Função para baixar estoque automaticamente ao registrar entrega
-        function baixarEstoqueEntrega(ca, quantidade) {
-            const epi = estoque.find(e => e.ca === ca);
-            if (!epi) return;
+        function baixarEstoqueEntrega(ca, quantidade, cnpj) {
+            // Buscar EPI da empresa específica
+            const epi = estoque.find(e => e.ca === ca && e.cnpj === cnpj);
+            if (!epi) {
+                // Se não encontrar da empresa, buscar de qualquer uma (compatibilidade)
+                const epiGeral = estoque.find(e => e.ca === ca);
+                if (!epiGeral) return;
+                
+                if (epiGeral.quantidade >= quantidade) {
+                    epiGeral.quantidade -= quantidade;
+                    epiGeral.historico.push({
+                        tipo: 'saida',
+                        quantidade: quantidade,
+                        data: new Date().toISOString(),
+                        obs: 'Baixa automática - Entrega de EPI'
+                    });
+                    saveEstoque();
+                    updateEstoqueUI();
+                }
+                return;
+            }
             
             if (epi.quantidade >= quantidade) {
                 epi.quantidade -= quantidade;
@@ -2829,11 +3052,25 @@
         }
         
         // Buscar EPI do estoque para autocomplete
+        function getEstoqueDaEmpresaEntrega() {
+            // Pegar o CNPJ do formulário de entrega
+            const cnpjInput = document.getElementById('cnpj');
+            const cnpj = cnpjInput ? cnpjInput.value : '';
+            
+            if (!cnpj) return estoque; // Se não tem CNPJ, mostrar todos
+            
+            // Filtrar estoque pela empresa
+            const estoqueEmp = estoque.filter(e => e.cnpj === cnpj);
+            return estoqueEmp.length > 0 ? estoqueEmp : estoque; // Se não tem estoque da empresa, mostrar todos
+        }
+        
         function buscarEPIEstoque(termo) {
             const lista = document.getElementById('autocomplete-epi');
             const dica = document.getElementById('dica-estoque');
             
-            if (estoque.length === 0) {
+            const estoqueDisponivel = getEstoqueDaEmpresaEntrega();
+            
+            if (estoqueDisponivel.length === 0) {
                 lista.classList.add('hidden');
                 dica.innerHTML = '💡 Cadastre EPIs na aba <strong>Estoque</strong> para selecionar automaticamente';
                 return;
@@ -2846,7 +3083,7 @@
                 return;
             }
             
-            const matches = estoque.filter(e => 
+            const matches = estoqueDisponivel.filter(e => 
                 e.descricao.toLowerCase().includes(termo.toLowerCase()) || 
                 e.ca.includes(termo)
             );
@@ -2868,21 +3105,23 @@
         }
         
         function mostrarEPIsEstoque() {
-            if (estoque.length > 0 && document.getElementById('descricaoEPI').value === '') {
+            const estoqueDisponivel = getEstoqueDaEmpresaEntrega();
+            if (estoqueDisponivel.length > 0 && document.getElementById('descricaoEPI').value === '') {
                 mostrarTodosEPIs();
             }
         }
         
         function mostrarTodosEPIs() {
             const lista = document.getElementById('autocomplete-epi');
+            const estoqueDisponivel = getEstoqueDaEmpresaEntrega();
             
-            if (estoque.length === 0) {
+            if (estoqueDisponivel.length === 0) {
                 lista.innerHTML = `
                     <div style="padding:1.5rem;text-align:center;color:#64748b;">
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 0.75rem;">
                             <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
                         </svg>
-                        <p style="margin-bottom:0.75rem;">Nenhum EPI cadastrado no estoque</p>
+                        <p style="margin-bottom:0.75rem;">Nenhum EPI cadastrado no estoque desta empresa</p>
                         <button type="button" onclick="showTab('estoque');document.getElementById('autocomplete-epi').classList.add('hidden');" style="background:#2563eb;color:#1e3a5f;border:none;padding:0.5rem 1rem;border-radius:6px;cursor:pointer;font-weight:600;">
                             📦 Ir para Estoque
                         </button>
@@ -2892,7 +3131,7 @@
                 return;
             }
             
-            renderizarListaEPIs(estoque);
+            renderizarListaEPIs(estoqueDisponivel);
         }
         
         function renderizarListaEPIs(itens) {
@@ -2996,7 +3235,21 @@
             
             if (tab !== 'cadastro') stopCamera();
             if (tab === 'funcionarios') updateFuncionariosList();
-            if (tab === 'estoque') updateEstoqueUI();
+            if (tab === 'estoque') {
+                // Se usuário tem empresa vinculada, selecionar automaticamente
+                if (currentUser && currentUser.empresaVinculada && currentUser.role !== 'dev') {
+                    const selectEstoque = document.getElementById('estoque-empresa-select');
+                    if (selectEstoque) {
+                        // Atualizar opções primeiro
+                        selectEstoque.innerHTML = '<option value="">Selecione uma empresa...</option>' +
+                            empresas.map(e => `<option value="${e.cnpj}">${e.fantasia || e.razao}</option>`).join('');
+                        // Selecionar empresa do usuário
+                        selectEstoque.value = currentUser.empresaVinculada;
+                        estoqueEmpresaSelecionada = currentUser.empresaVinculada;
+                    }
+                }
+                updateEstoqueUI();
+            }
             if (tab === 'devolucao') {
                 initSignatureDevolucao();
                 document.getElementById('dev-data').value = new Date().toISOString().split('T')[0];
@@ -3287,25 +3540,65 @@
         function updateEmpresasUI() {
             loadEmpresas();
             
-            // Atualizar contadores
-            document.getElementById('total-empresas').textContent = empresas.length;
-            document.getElementById('total-entregas-empresas').textContent = entregas.length;
+            // Verificar empresa selecionada no filtro
+            const selectEmpresa = document.getElementById('empresa-ativa-select');
+            const cnpjSelecionado = selectEmpresa ? selectEmpresa.value : '';
+            const empresaSelecionada = cnpjSelecionado ? empresas.find(e => e.cnpj === cnpjSelecionado) : null;
             
-            // Atualizar select
+            // Filtrar entregas pela empresa selecionada
+            let entregasFiltradas = entregas;
+            let empresasFiltradas = empresas;
+            
+            if (empresaSelecionada) {
+                entregasFiltradas = entregas.filter(e => e.cnpj === cnpjSelecionado);
+                empresasFiltradas = [empresaSelecionada];
+            }
+            
+            // Calcular estatísticas
+            const totalFuncionarios = [...new Set(entregasFiltradas.map(e => e.cpf))].length;
+            const totalDevolvidos = entregasFiltradas.filter(e => e.devolvido).length;
+            const totalEmUso = entregasFiltradas.filter(e => !e.devolvido).length;
+            
+            // Atualizar contadores
+            document.getElementById('total-empresas').textContent = empresaSelecionada ? '1' : empresas.length;
+            document.getElementById('total-entregas-empresas').textContent = entregasFiltradas.length;
+            
+            // Atualizar/Adicionar contadores extras
+            const statsContainer = document.getElementById('empresas-stats-extra');
+            if (statsContainer) {
+                statsContainer.innerHTML = `
+                    <div style="background:#0f172a;padding:1rem;border-radius:10px;text-align:center;">
+                        <div style="font-size:2rem;font-weight:700;color:#8b5cf6;font-family:'JetBrains Mono',monospace;">${totalFuncionarios}</div>
+                        <div style="font-size:0.8rem;color:#64748b;text-transform:uppercase;">Funcionários</div>
+                    </div>
+                    <div style="background:#0f172a;padding:1rem;border-radius:10px;text-align:center;">
+                        <div style="font-size:2rem;font-weight:700;color:#10b981;font-family:'JetBrains Mono',monospace;">${totalEmUso}</div>
+                        <div style="font-size:0.8rem;color:#64748b;text-transform:uppercase;">Em Uso</div>
+                    </div>
+                    <div style="background:#0f172a;padding:1rem;border-radius:10px;text-align:center;">
+                        <div style="font-size:2rem;font-weight:700;color:#f59e0b;font-family:'JetBrains Mono',monospace;">${totalDevolvidos}</div>
+                        <div style="font-size:0.8rem;color:#64748b;text-transform:uppercase;">Devolvidos</div>
+                    </div>
+                `;
+            }
+            
+            // Atualizar select (mantendo valor selecionado)
             atualizarSelectsEmpresa();
             
             // Atualizar lista
             const lista = document.getElementById('empresas-lista');
             if (!lista) return;
             
-            if (empresas.length === 0) {
+            if (empresasFiltradas.length === 0) {
                 lista.innerHTML = '<p style="text-align:center;color:#64748b;padding:2rem;">Nenhuma empresa cadastrada</p>';
                 return;
             }
             
-            lista.innerHTML = empresas.map(emp => {
+            lista.innerHTML = empresasFiltradas.map(emp => {
                 const entregasEmp = entregas.filter(e => e.cnpj === emp.cnpj);
                 const funcionariosEmp = [...new Set(entregasEmp.map(e => e.cpf))].length;
+                const emUsoEmp = entregasEmp.filter(e => !e.devolvido).length;
+                const devolvidosEmp = entregasEmp.filter(e => e.devolvido).length;
                 const paleta = PALETAS_CORES[emp.paleta] || PALETAS_CORES.azul;
                 
                 return `
@@ -3318,16 +3611,25 @@
                                     <h4 style="color:#e2e8f0;font-size:1.1rem;margin-bottom:0.25rem;">${emp.razao}</h4>
                                     ${emp.fantasia ? `<p style="color:#94a3b8;font-size:0.85rem;">${emp.fantasia}</p>` : ''}
                                     <p style="color:#64748b;font-size:0.8rem;font-family:'JetBrains Mono',monospace;">${emp.cnpj}</p>
+                                    ${emp.endereco ? `<p style="color:#64748b;font-size:0.75rem;margin-top:0.25rem;">📍 ${emp.endereco}</p>` : ''}
                                 </div>
                             </div>
-                            <div style="display:flex;gap:1rem;text-align:center;">
-                                <div style="background:#0f172a;padding:0.75rem 1rem;border-radius:8px;">
-                                    <div style="font-size:1.25rem;font-weight:700;color:#2563eb;">${entregasEmp.length}</div>
-                                    <div style="font-size:0.7rem;color:#64748b;">Entregas</div>
+                            <div style="display:flex;gap:0.5rem;text-align:center;flex-wrap:wrap;">
+                                <div style="background:#0f172a;padding:0.5rem 0.75rem;border-radius:8px;min-width:60px;">
+                                    <div style="font-size:1.1rem;font-weight:700;color:#2563eb;">${entregasEmp.length}</div>
+                                    <div style="font-size:0.65rem;color:#64748b;">Entregas</div>
                                 </div>
-                                <div style="background:#0f172a;padding:0.75rem 1rem;border-radius:8px;">
-                                    <div style="font-size:1.25rem;font-weight:700;color:#10b981;">${funcionariosEmp}</div>
-                                    <div style="font-size:0.7rem;color:#64748b;">Funcionários</div>
+                                <div style="background:#0f172a;padding:0.5rem 0.75rem;border-radius:8px;min-width:60px;">
+                                    <div style="font-size:1.1rem;font-weight:700;color:#8b5cf6;">${funcionariosEmp}</div>
+                                    <div style="font-size:0.65rem;color:#64748b;">Funcion.</div>
+                                </div>
+                                <div style="background:#0f172a;padding:0.5rem 0.75rem;border-radius:8px;min-width:60px;">
+                                    <div style="font-size:1.1rem;font-weight:700;color:#10b981;">${emUsoEmp}</div>
+                                    <div style="font-size:0.65rem;color:#64748b;">Em Uso</div>
+                                </div>
+                                <div style="background:#0f172a;padding:0.5rem 0.75rem;border-radius:8px;min-width:60px;">
+                                    <div style="font-size:1.1rem;font-weight:700;color:#f59e0b;">${devolvidosEmp}</div>
+                                    <div style="font-size:0.65rem;color:#64748b;">Devolv.</div>
                                 </div>
                             </div>
                         </div>
@@ -3469,8 +3771,118 @@
         function selecionarEmpresaAtiva() {
             const cnpj = document.getElementById('empresa-ativa-select').value;
             empresaAtual = cnpj ? empresas.find(e => e.cnpj === cnpj) : null;
+            
+            // Atualizar todas as UIs
             updateUI();
             updateFuncionariosList();
+            
+            // Atualizar lista e estatísticas de empresas (sem recarregar select)
+            updateEmpresasStats();
+        }
+        
+        function updateEmpresasStats() {
+            // Verificar empresa selecionada no filtro
+            const selectEmpresa = document.getElementById('empresa-ativa-select');
+            const cnpjSelecionado = selectEmpresa ? selectEmpresa.value : '';
+            const empresaSelecionada = cnpjSelecionado ? empresas.find(e => e.cnpj === cnpjSelecionado) : null;
+            
+            // Filtrar entregas pela empresa selecionada
+            let entregasFiltradas = entregas;
+            let empresasFiltradas = empresas;
+            
+            if (empresaSelecionada) {
+                entregasFiltradas = entregas.filter(e => e.cnpj === cnpjSelecionado);
+                empresasFiltradas = [empresaSelecionada];
+            }
+            
+            // Calcular estatísticas
+            const totalFuncionarios = [...new Set(entregasFiltradas.map(e => e.cpf))].length;
+            const totalDevolvidos = entregasFiltradas.filter(e => e.devolvido).length;
+            const totalEmUso = entregasFiltradas.filter(e => !e.devolvido).length;
+            
+            // Atualizar contadores principais
+            document.getElementById('total-empresas').textContent = empresaSelecionada ? '1' : empresas.length;
+            document.getElementById('total-entregas-empresas').textContent = entregasFiltradas.length;
+            
+            // Atualizar/Adicionar contadores extras
+            const statsContainer = document.getElementById('empresas-stats-extra');
+            if (statsContainer) {
+                statsContainer.innerHTML = `
+                    <div style="background:#0f172a;padding:1rem;border-radius:10px;text-align:center;">
+                        <div style="font-size:2rem;font-weight:700;color:#8b5cf6;font-family:'JetBrains Mono',monospace;">${totalFuncionarios}</div>
+                        <div style="font-size:0.8rem;color:#64748b;text-transform:uppercase;">Funcionários</div>
+                    </div>
+                    <div style="background:#0f172a;padding:1rem;border-radius:10px;text-align:center;">
+                        <div style="font-size:2rem;font-weight:700;color:#22c55e;font-family:'JetBrains Mono',monospace;">${totalEmUso}</div>
+                        <div style="font-size:0.8rem;color:#64748b;text-transform:uppercase;">Em Uso</div>
+                    </div>
+                    <div style="background:#0f172a;padding:1rem;border-radius:10px;text-align:center;">
+                        <div style="font-size:2rem;font-weight:700;color:#f59e0b;font-family:'JetBrains Mono',monospace;">${totalDevolvidos}</div>
+                        <div style="font-size:0.8rem;color:#64748b;text-transform:uppercase;">Devolvidos</div>
+                    </div>
+                `;
+            }
+            
+            // Atualizar lista de empresas
+            const lista = document.getElementById('empresas-lista');
+            if (!lista) return;
+            
+            if (empresasFiltradas.length === 0) {
+                lista.innerHTML = '<p style="text-align:center;color:#64748b;padding:2rem;">Nenhuma empresa cadastrada</p>';
+                return;
+            }
+            
+            lista.innerHTML = empresasFiltradas.map(emp => {
+                const entregasEmp = entregas.filter(e => e.cnpj === emp.cnpj);
+                const funcionariosEmp = [...new Set(entregasEmp.map(e => e.cpf))].length;
+                const emUsoEmp = entregasEmp.filter(e => !e.devolvido).length;
+                const devolvidosEmp = entregasEmp.filter(e => e.devolvido).length;
+                const paleta = PALETAS_CORES[emp.paleta] || PALETAS_CORES.azul;
+                
+                return `
+                    <div style="background:#1e3a5f;border-radius:12px;padding:1.25rem;margin-bottom:1rem;border-left:4px solid rgb(${paleta.secundaria.join(',')});">
+                        <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:1rem;">
+                            <div style="display:flex;gap:1rem;align-items:center;">
+                                ${emp.logo ? `<img src="${emp.logo}" style="width:60px;height:60px;object-fit:contain;background:#fff;border-radius:8px;padding:5px;">` : 
+                                `<div style="width:60px;height:60px;background:rgb(${paleta.secundaria.join(',')});border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">🏢</div>`}
+                                <div>
+                                    <h4 style="color:#e2e8f0;font-size:1.1rem;margin-bottom:0.25rem;">${emp.razao}</h4>
+                                    ${emp.fantasia ? `<p style="color:#94a3b8;font-size:0.85rem;">${emp.fantasia}</p>` : ''}
+                                    <p style="color:#64748b;font-size:0.8rem;font-family:'JetBrains Mono',monospace;">${emp.cnpj}</p>
+                                    ${emp.endereco ? `<p style="color:#64748b;font-size:0.75rem;margin-top:0.25rem;">📍 ${emp.endereco}</p>` : ''}
+                                </div>
+                            </div>
+                            <div style="display:flex;gap:0.5rem;text-align:center;flex-wrap:wrap;">
+                                <div style="background:#0f172a;padding:0.5rem 0.75rem;border-radius:8px;min-width:60px;">
+                                    <div style="font-size:1.1rem;font-weight:700;color:#2563eb;">${entregasEmp.length}</div>
+                                    <div style="font-size:0.65rem;color:#64748b;">Entregas</div>
+                                </div>
+                                <div style="background:#0f172a;padding:0.5rem 0.75rem;border-radius:8px;min-width:60px;">
+                                    <div style="font-size:1.1rem;font-weight:700;color:#8b5cf6;">${funcionariosEmp}</div>
+                                    <div style="font-size:0.65rem;color:#64748b;">Funcion.</div>
+                                </div>
+                                <div style="background:#0f172a;padding:0.5rem 0.75rem;border-radius:8px;min-width:60px;">
+                                    <div style="font-size:1.1rem;font-weight:700;color:#10b981;">${emUsoEmp}</div>
+                                    <div style="font-size:0.65rem;color:#64748b;">Em Uso</div>
+                                </div>
+                                <div style="background:#0f172a;padding:0.5rem 0.75rem;border-radius:8px;min-width:60px;">
+                                    <div style="font-size:1.1rem;font-weight:700;color:#f59e0b;">${devolvidosEmp}</div>
+                                    <div style="font-size:0.65rem;color:#64748b;">Devolv.</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:0.5rem;margin-top:1rem;flex-wrap:wrap;align-items:center;">
+                            <span style="background:rgb(${paleta.secundaria.join(',')});color:#fff;padding:0.25rem 0.75rem;border-radius:50px;font-size:0.75rem;">
+                                🎨 ${paleta.nome}
+                            </span>
+                            ${emp.telefone ? `<span style="color:#64748b;font-size:0.8rem;">📞 ${emp.telefone}</span>` : ''}
+                            <div style="flex:1;"></div>
+                            <button class="btn-secondary" onclick="editarEmpresa('${emp.cnpj}')" style="padding:0.4rem 0.75rem;font-size:0.8rem;">✏️ Editar</button>
+                            <button class="btn-danger" onclick="excluirEmpresa('${emp.cnpj}')" style="padding:0.4rem 0.75rem;font-size:0.8rem;">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
         
         function getEmpresaPorCNPJ(cnpj) {
@@ -3571,6 +3983,12 @@
                     updateUI();
                     updateEmpresasUI();
                     updateEstoqueUI();
+                    
+                    // Esconder banner de sincronização
+                    fecharBannerSync();
+                    
+                    // Ir para aba de funcionários para mostrar os dados importados
+                    showTab('funcionarios');
                     
                     showNotification('Sincronização concluída com sucesso!', 'success');
                     
@@ -4043,8 +4461,8 @@
             
             entregas.unshift(entrega);
             
-            // Baixar do estoque automaticamente
-            baixarEstoqueEntrega(entrega.numeroCA, parseInt(entrega.quantidade) || 1);
+            // Baixar do estoque automaticamente (passando CNPJ da empresa)
+            baixarEstoqueEntrega(entrega.numeroCA, parseInt(entrega.quantidade) || 1, entrega.cnpj);
             
             if (saveData()) {
                 generatePDF(entrega.cpf);
@@ -5151,7 +5569,14 @@
             
             // Retornar ao estoque se solicitado
             if (document.getElementById('dev-retornar').value === 'sim') {
-                const epi = estoque.find(e => e.ca === entrega.numeroCA);
+                // Buscar EPI da empresa específica primeiro
+                let epi = estoque.find(e => e.ca === entrega.numeroCA && e.cnpj === entrega.cnpj);
+                
+                // Se não encontrar da empresa, buscar de qualquer uma (compatibilidade)
+                if (!epi) {
+                    epi = estoque.find(e => e.ca === entrega.numeroCA);
+                }
+                
                 if (epi) {
                     epi.quantidade += parseInt(entrega.quantidade) || 1;
                     epi.historico.push({
