@@ -1,0 +1,2035 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Avaliação de Riscos Psicossociais - NR-1/NR-17 | RC Engenharia</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- jsPDF para geração de PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    
+    <!-- SheetJS para Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        .gradient-bg { background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%); }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .nivel-critico { background-color: #fadbd8; color: #922b21; }
+        .nivel-alto { background-color: #fdebd0; color: #9c640c; }
+        .nivel-moderado { background-color: #fcf3cf; color: #9a7b0a; }
+        .nivel-baixo { background-color: #d5f5e3; color: #1e8449; }
+        .hidden { display: none !important; }
+        @media print {
+            .no-print { display: none !important; }
+            .print-break { page-break-before: always; }
+        }
+        .logo-preview { max-height: 80px; max-width: 200px; object-fit: contain; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+<!-- Navbar -->
+<nav class="gradient-bg text-white shadow-lg no-print">
+    <div class="max-w-6xl mx-auto px-4 py-4">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="mostrarTela('inicio')">
+                <i class="fas fa-brain text-2xl"></i>
+                <div>
+                    <h1 class="text-lg font-bold">RC Engenharia</h1>
+                    <p class="text-xs opacity-75">Riscos Psicossociais | NR-1 / NR-17</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 flex-wrap">
+                <button onclick="mostrarTela('inicio')" class="hover:bg-white/10 px-3 py-2 rounded-lg transition text-sm">
+                    <i class="fas fa-home mr-1"></i> Início
+                </button>
+                <button onclick="mostrarTela('guia')" class="hover:bg-white/10 px-3 py-2 rounded-lg transition text-sm">
+                    <i class="fas fa-book mr-1"></i> Guia
+                </button>
+                <button onclick="mostrarTela('historico')" class="hover:bg-white/10 px-3 py-2 rounded-lg transition text-sm">
+                    <i class="fas fa-history mr-1"></i> Histórico
+                </button>
+                <button onclick="exportarBackup()" class="hover:bg-white/10 px-3 py-2 rounded-lg transition text-sm">
+                    <i class="fas fa-download mr-1"></i> Backup
+                </button>
+                <button onclick="importarBackup()" class="hover:bg-white/10 px-3 py-2 rounded-lg transition text-sm">
+                    <i class="fas fa-upload mr-1"></i> Restaurar
+                </button>
+                <input type="file" id="input-backup" accept=".json" class="hidden" onchange="processarBackup(event)">
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Container Principal -->
+<main class="max-w-6xl mx-auto px-4 py-6">
+
+    <!-- TELA: INÍCIO -->
+    <div id="tela-inicio">
+        <!-- Hero -->
+        <div class="gradient-bg rounded-2xl shadow-xl p-8 mb-8 text-white">
+            <div class="max-w-3xl">
+                <h1 class="text-3xl font-bold mb-4">
+                    <i class="fas fa-clipboard-check mr-2"></i>
+                    Avaliação de Riscos Psicossociais
+                </h1>
+                <p class="text-lg opacity-90 mb-6">
+                    Sistema integrado para avaliação de fatores de riscos psicossociais conforme 
+                    NR-1 (GRO) e NR-17 (Ergonomia) - Portaria MTE nº 1.419/2024.
+                </p>
+                <div class="flex gap-4 flex-wrap">
+                    <button onclick="mostrarTela('empresa')" class="bg-white text-blue-800 hover:bg-blue-50 px-6 py-3 rounded-lg font-semibold transition">
+                        <i class="fas fa-play mr-2"></i> Iniciar Nova Avaliação
+                    </button>
+                    <button onclick="mostrarTela('guia')" class="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-lg font-semibold transition">
+                        <i class="fas fa-book mr-2"></i> Consultar Guia
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cards -->
+        <div class="grid md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow p-6 text-center card-hover transition">
+                <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-layer-group text-2xl text-blue-600"></i>
+                </div>
+                <h3 class="font-semibold text-gray-800">7 Dimensões</h3>
+                <p class="text-sm text-gray-500">HSE Standards</p>
+            </div>
+            <div class="bg-white rounded-xl shadow p-6 text-center card-hover transition">
+                <div class="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-question-circle text-2xl text-green-600"></i>
+                </div>
+                <h3 class="font-semibold text-gray-800">39 Questões</h3>
+                <p class="text-sm text-gray-500">Validadas</p>
+            </div>
+            <div class="bg-white rounded-xl shadow p-6 text-center card-hover transition">
+                <div class="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-file-pdf text-2xl text-purple-600"></i>
+                </div>
+                <h3 class="font-semibold text-gray-800">Relatório PDF</h3>
+                <p class="text-sm text-gray-500">Profissional</p>
+            </div>
+            <div class="bg-white rounded-xl shadow p-6 text-center card-hover transition">
+                <div class="w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-file-excel text-2xl text-orange-600"></i>
+                </div>
+                <h3 class="font-semibold text-gray-800">Export Excel</h3>
+                <p class="text-sm text-gray-500">Dados completos</p>
+            </div>
+        </div>
+
+        <!-- Metodologias -->
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-6">
+            <h3 class="font-semibold text-amber-800 mb-4">
+                <i class="fas fa-book mr-2"></i> Metodologias Integradas
+            </h3>
+            <div class="grid md:grid-cols-3 gap-4 text-sm text-amber-700">
+                <div><i class="fas fa-check-circle mr-1"></i> HSE Management Standards (UK)</div>
+                <div><i class="fas fa-check-circle mr-1"></i> Job Stress Scale (Karasek)</div>
+                <div><i class="fas fa-check-circle mr-1"></i> ISO 45003:2021</div>
+                <div><i class="fas fa-check-circle mr-1"></i> NR-1 / NR-17 (Brasil)</div>
+                <div><i class="fas fa-check-circle mr-1"></i> Guia MTE 2025</div>
+                <div><i class="fas fa-check-circle mr-1"></i> Resolução CFP nº 14/2023</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TELA: GUIA DE PERGUNTAS -->
+    <div id="tela-guia" class="hidden">
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="gradient-bg px-6 py-4">
+                <h2 class="text-xl font-bold text-white">
+                    <i class="fas fa-book mr-2"></i>
+                    Guia do Questionário - 39 Questões por Dimensão
+                </h2>
+            </div>
+            
+            <div class="p-6">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <h3 class="font-semibold text-blue-800 mb-2"><i class="fas fa-info-circle mr-2"></i>Sobre o Questionário</h3>
+                    <p class="text-blue-700 text-sm mb-2">
+                        Este questionário é baseado no <strong>HSE Management Standards Indicator Tool</strong> e adaptado 
+                        para a realidade brasileira conforme <strong>NR-1 (GRO)</strong> e <strong>NR-17 (Ergonomia)</strong>.
+                    </p>
+                    <p class="text-blue-700 text-sm">
+                        <strong>Escala de Respostas:</strong> 1 = Nunca | 2 = Raramente | 3 = Às vezes | 4 = Frequentemente | 5 = Sempre
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-4 gap-4 mb-6">
+                    <div class="p-3 rounded-lg nivel-critico text-center">
+                        <div class="font-bold">CRÍTICO</div>
+                        <div class="text-xs">0-24 pontos</div>
+                    </div>
+                    <div class="p-3 rounded-lg nivel-alto text-center">
+                        <div class="font-bold">ALTO</div>
+                        <div class="text-xs">25-49 pontos</div>
+                    </div>
+                    <div class="p-3 rounded-lg nivel-moderado text-center">
+                        <div class="font-bold">MODERADO</div>
+                        <div class="text-xs">50-74 pontos</div>
+                    </div>
+                    <div class="p-3 rounded-lg nivel-baixo text-center">
+                        <div class="font-bold">BAIXO</div>
+                        <div class="text-xs">75-100 pontos</div>
+                    </div>
+                </div>
+                
+                <div id="guia-questoes"></div>
+            </div>
+        </div>
+        
+        <div class="mt-6">
+            <button onclick="mostrarTela('inicio')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 px-6 rounded-lg transition">
+                <i class="fas fa-arrow-left mr-2"></i> Voltar ao Início
+            </button>
+        </div>
+    </div>
+
+    <!-- TELA: CADASTRO EMPRESA -->
+    <div id="tela-empresa" class="hidden">
+        <div class="max-w-3xl mx-auto">
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="gradient-bg px-6 py-4">
+                    <h2 class="text-xl font-bold text-white">
+                        <i class="fas fa-building mr-2"></i>
+                        Dados da Avaliação
+                    </h2>
+                </div>
+                
+                <div class="p-6 space-y-6">
+                    <!-- Logos -->
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="border-2 border-dashed border-blue-300 rounded-xl p-4 bg-blue-50">
+                            <label class="block text-sm font-medium text-blue-800 mb-2">
+                                <i class="fas fa-building mr-1"></i> Logo da Empresa Contratante
+                            </label>
+                            <div class="flex flex-col items-center">
+                                <img id="preview-logo-contratante" src="" alt="" class="logo-preview mb-2 hidden">
+                                <input type="file" id="logo-contratante" accept="image/*" onchange="previewLogo('contratante')" class="hidden">
+                                <button onclick="document.getElementById('logo-contratante').click()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition">
+                                    <i class="fas fa-upload mr-1"></i> Selecionar Logo
+                                </button>
+                                <button onclick="removerLogo('contratante')" class="text-red-500 hover:text-red-700 text-xs mt-2 hidden" id="btn-remover-contratante">
+                                    <i class="fas fa-trash mr-1"></i> Remover
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="border-2 border-dashed border-green-300 rounded-xl p-4 bg-green-50">
+                            <label class="block text-sm font-medium text-green-800 mb-2">
+                                <i class="fas fa-user-tie mr-1"></i> Logo da Consultoria (RC Engenharia)
+                            </label>
+                            <div class="flex flex-col items-center">
+                                <img id="preview-logo-contratada" src="" alt="" class="logo-preview mb-2 hidden">
+                                <input type="file" id="logo-contratada" accept="image/*" onchange="previewLogo('contratada')" class="hidden">
+                                <button onclick="document.getElementById('logo-contratada').click()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition">
+                                    <i class="fas fa-upload mr-1"></i> Selecionar Logo
+                                </button>
+                                <button onclick="removerLogo('contratada')" class="text-red-500 hover:text-red-700 text-xs mt-2 hidden" id="btn-remover-contratada">
+                                    <i class="fas fa-trash mr-1"></i> Remover
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Dados da empresa contratante -->
+                    <div class="border-t pt-6">
+                        <h3 class="font-semibold text-gray-800 mb-4"><i class="fas fa-building mr-2 text-blue-600"></i>Empresa Contratante (Avaliada)</h3>
+                        
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Razão Social *</label>
+                                <input type="text" id="empresa-nome" required
+                                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="Nome da empresa avaliada">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">CNPJ</label>
+                                <input type="text" id="empresa-cnpj"
+                                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="00.000.000/0000-00">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Setor / Área Avaliada *</label>
+                                <input type="text" id="empresa-setor" required
+                                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="Ex: Administrativo, Produção">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Data da Avaliação *</label>
+                                <input type="date" id="empresa-data" required
+                                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Hora de Início *</label>
+                                <input type="time" id="empresa-hora" required
+                                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Código de Rastreabilidade -->
+                    <div class="border-t pt-6 bg-blue-50 -mx-6 px-6 pb-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-semibold text-gray-800"><i class="fas fa-fingerprint mr-2 text-blue-600"></i>Código de Rastreabilidade</h3>
+                                <p class="text-xs text-gray-500 mt-1">Identificador único gerado automaticamente</p>
+                            </div>
+                            <div class="text-right">
+                                <span id="codigo-rastreio" class="font-mono text-lg font-bold text-blue-700 bg-white px-4 py-2 rounded-lg border-2 border-blue-300">---</span>
+                                <button onclick="gerarNovoCodigo()" class="ml-2 text-blue-600 hover:text-blue-800 text-sm">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Dados da RC Engenharia (pré-preenchidos) -->
+                    <div class="border-t pt-6 bg-green-50 -mx-6 px-6 pb-6">
+                        <h3 class="font-semibold text-gray-800 mb-4"><i class="fas fa-user-tie mr-2 text-green-600"></i>Empresa Contratada (Consultoria)</h3>
+                        
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Razão Social</label>
+                                <input type="text" id="consultoria-nome" value="RC ENGENHARIA - SERVIÇOS DE SEGURANÇA E SAÚDE OCUPACIONAL LTDA"
+                                    class="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">CNPJ</label>
+                                <input type="text" id="consultoria-cnpj" value="36.794.867/0001-22"
+                                    class="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Cidade/UF</label>
+                                <input type="text" id="consultoria-cidade" value="Maranguape/CE"
+                                    class="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Responsável Técnico</label>
+                                <input type="text" id="consultoria-responsavel" value="Antonio Rodrigues"
+                                    class="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Função</label>
+                                <input type="text" id="consultoria-funcao" value="Engenheiro de Segurança do Trabalho"
+                                    class="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            </div>
+                            
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Registro Profissional</label>
+                                <input type="text" id="consultoria-registro" value="CREA-CE 061100682-4"
+                                    class="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-4 pt-4">
+                        <button onclick="mostrarTela('inicio')" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 px-6 rounded-lg transition">
+                            <i class="fas fa-arrow-left mr-2"></i> Voltar
+                        </button>
+                        <button onclick="salvarEmpresa()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition">
+                            Próximo <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TELA: PARTICIPANTES -->
+    <div id="tela-participantes" class="hidden">
+        <div class="max-w-3xl mx-auto">
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-2">
+                    <i class="fas fa-users mr-2 text-blue-600"></i>
+                    Participantes da Avaliação
+                </h2>
+                <p class="text-gray-600 text-sm mb-4">
+                    Empresa: <strong id="info-empresa"></strong> | Setor: <strong id="info-setor"></strong>
+                </p>
+                
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <p class="text-blue-800 text-sm">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Clique em "Aplicar Questionário" para cada participante responder. As respostas são anônimas.
+                    </p>
+                </div>
+                
+                <div id="lista-participantes" class="mb-6"></div>
+                
+                <button onclick="iniciarQuestionario()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-4 rounded-xl transition text-lg">
+                    <i class="fas fa-plus-circle mr-2"></i> Aplicar Questionário (Novo Participante)
+                </button>
+            </div>
+            
+            <div class="flex gap-4">
+                <button onclick="mostrarTela('empresa')" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 rounded-lg transition">
+                    <i class="fas fa-arrow-left mr-2"></i> Voltar
+                </button>
+                <button onclick="verResultados()" id="btn-resultados" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-lg transition disabled:bg-gray-400" disabled>
+                    <i class="fas fa-chart-bar mr-2"></i> Ver Resultados
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TELA: QUESTIONÁRIO -->
+    <div id="tela-questionario" class="hidden">
+        <div class="max-w-3xl mx-auto">
+            <div class="bg-white rounded-xl shadow-lg p-4 mb-4">
+                <div class="flex justify-between text-sm text-gray-600 mb-2">
+                    <span>Questão <span id="questao-atual">1</span> de 39</span>
+                    <span><span id="progresso-pct">0</span>% concluído</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="barra-progresso" class="bg-blue-600 h-2 rounded-full transition-all" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-lg p-4 mb-4">
+                <span id="dimensao-badge" class="text-sm font-semibold px-3 py-1 rounded-full"></span>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-4">
+                <p id="questao-texto" class="text-lg text-gray-800 mb-6"></p>
+                <div id="opcoes-resposta" class="space-y-3"></div>
+            </div>
+            
+            <div class="flex gap-4">
+                <button onclick="questaoAnterior()" id="btn-anterior" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 rounded-lg transition hidden">
+                    <i class="fas fa-arrow-left mr-2"></i> Anterior
+                </button>
+                <button onclick="finalizarQuestionario()" id="btn-finalizar" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition hidden">
+                    <i class="fas fa-check mr-2"></i> Finalizar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TELA: HISTÓRICO -->
+    <div id="tela-historico" class="hidden">
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="gradient-bg px-6 py-4">
+                <h2 class="text-xl font-bold text-white">
+                    <i class="fas fa-history mr-2"></i>
+                    Histórico de Avaliações
+                </h2>
+            </div>
+            
+            <div class="p-6">
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Filtrar por Empresa:</label>
+                    <select id="filtro-empresa" onchange="filtrarHistorico()" class="w-full md:w-1/2 border border-gray-300 rounded-lg px-4 py-2">
+                        <option value="">Todas as empresas</option>
+                    </select>
+                </div>
+                
+                <div id="lista-historico"></div>
+            </div>
+        </div>
+        
+        <div class="mt-6">
+            <button onclick="mostrarTela('inicio')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 px-6 rounded-lg transition">
+                <i class="fas fa-arrow-left mr-2"></i> Voltar ao Início
+            </button>
+        </div>
+    </div>
+
+    <!-- TELA: RESULTADOS -->
+    <div id="tela-resultados" class="hidden">
+        <div class="gradient-bg rounded-xl shadow-lg p-6 mb-6 text-white">
+            <h1 class="text-2xl font-bold mb-2">
+                <i class="fas fa-chart-bar mr-2"></i>
+                Relatório de Avaliação de Riscos Psicossociais
+            </h1>
+            <p class="opacity-90">Conforme NR-1 (GRO) e NR-17 (Ergonomia) - Portaria MTE nº 1.419/2024</p>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h2 class="font-bold text-gray-800 mb-4">
+                <i class="fas fa-building mr-2 text-blue-600"></i>
+                Dados da Avaliação
+            </h2>
+            <div id="dados-avaliacao" class="grid md:grid-cols-2 gap-4 text-sm"></div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h2 class="font-bold text-gray-800 mb-4">
+                <i class="fas fa-tachometer-alt mr-2 text-blue-600"></i>
+                Resultado Geral
+            </h2>
+            <div id="resultado-geral" class="flex flex-col md:flex-row items-center gap-6"></div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h2 class="font-bold text-gray-800 mb-4">
+                <i class="fas fa-chart-bar mr-2 text-blue-600"></i>
+                Escores por Dimensão
+            </h2>
+            <div class="h-80">
+                <canvas id="grafico-barras"></canvas>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h2 class="font-bold text-gray-800 mb-4">
+                <i class="fas fa-spider mr-2 text-blue-600"></i>
+                Perfil de Riscos
+            </h2>
+            <div class="h-80">
+                <canvas id="grafico-radar"></canvas>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+            <div class="gradient-bg px-6 py-4">
+                <h2 class="text-xl font-bold text-white">
+                    <i class="fas fa-list-alt mr-2"></i>
+                    Detalhamento por Dimensão
+                </h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm" id="tabela-resultados">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="p-4 text-left font-semibold">Dimensão</th>
+                            <th class="p-4 text-center font-semibold">Escore</th>
+                            <th class="p-4 text-center font-semibold">Nível</th>
+                            <th class="p-4 text-left font-semibold">Ação Recomendada</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-resultados"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div id="plano-acao" class="bg-white rounded-xl shadow-lg p-6 mb-6"></div>
+        
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h2 class="font-bold text-gray-800 mb-4">
+                <i class="fas fa-calendar-alt mr-2 text-blue-600"></i>
+                Cronograma Sugerido
+            </h2>
+            <div class="space-y-3">
+                <div class="flex items-center gap-4 p-3 rounded-lg nivel-critico">
+                    <span class="font-bold w-28">IMEDIATA</span>
+                    <span class="font-semibold">Até 30 dias</span>
+                    <span class="flex-1">Dimensões em nível CRÍTICO</span>
+                </div>
+                <div class="flex items-center gap-4 p-3 rounded-lg nivel-alto">
+                    <span class="font-bold w-28">ALTA</span>
+                    <span class="font-semibold">Até 90 dias</span>
+                    <span class="flex-1">Dimensões em nível ALTO</span>
+                </div>
+                <div class="flex items-center gap-4 p-3 rounded-lg nivel-moderado">
+                    <span class="font-bold w-28">MÉDIA</span>
+                    <span class="font-semibold">Até 180 dias</span>
+                    <span class="flex-1">Dimensões em nível MODERADO</span>
+                </div>
+                <div class="flex items-center gap-4 p-3 rounded-lg nivel-baixo">
+                    <span class="font-bold w-28">CONTÍNUA</span>
+                    <span class="font-semibold">Permanente</span>
+                    <span class="flex-1">Monitoramento e melhoria contínua</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h2 class="font-bold text-gray-800 mb-4">
+                <i class="fas fa-book mr-2 text-blue-600"></i>
+                Referências Normativas
+            </h2>
+            <ul class="text-sm text-gray-600 space-y-1">
+                <li>• BRASIL. MTE. NR-1 - Disposições Gerais e GRO. Portaria MTE nº 1.419/2024.</li>
+                <li>• BRASIL. MTE. NR-17 - Ergonomia.</li>
+                <li>• BRASIL. MTE. Guia sobre Fatores de Riscos Psicossociais. 2025.</li>
+                <li>• HSE. Managing the causes of work-related stress. London, 2007.</li>
+                <li>• ISO 45003:2021 - Psychological health and safety at work.</li>
+                <li>• KARASEK, R.A.; THEORELL, T. Healthy work. Basic Books, 1990.</li>
+            </ul>
+        </div>
+        
+        <div class="grid md:grid-cols-4 gap-4 mb-6 no-print">
+            <button onclick="mostrarTela('participantes')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-4 rounded-xl transition font-semibold">
+                <i class="fas fa-arrow-left mr-2"></i> Voltar
+            </button>
+            <button onclick="gerarPDF()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-4 rounded-xl transition font-semibold">
+                <i class="fas fa-file-pdf mr-2"></i> Baixar PDF
+            </button>
+            <button onclick="exportarExcel()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-4 rounded-xl transition font-semibold">
+                <i class="fas fa-file-excel mr-2"></i> Exportar Excel
+            </button>
+            <button onclick="salvarNoHistorico()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-xl transition font-semibold">
+                <i class="fas fa-save mr-2"></i> Salvar Histórico
+            </button>
+        </div>
+    </div>
+
+</main>
+
+<!-- Footer -->
+<footer class="bg-gray-800 text-white mt-12 py-6 no-print">
+    <div class="max-w-6xl mx-auto px-4 text-center">
+        <p class="text-sm opacity-75">
+            Sistema de Avaliação de Riscos Psicossociais | Conforme NR-1 (GRO) e NR-17 | Portaria MTE nº 1.419/2024
+        </p>
+        <p class="text-xs opacity-50 mt-2">
+            © 2026 RC Engenharia - Serviços de Segurança e Saúde Ocupacional. Todos os direitos reservados.
+        </p>
+    </div>
+</footer>
+
+<script>
+// ============================================================================
+// DADOS DO QUESTIONÁRIO
+// ============================================================================
+
+const DIMENSOES = {
+    demandas: { nome: 'Demandas do Trabalho', descricao: 'Carga de trabalho, ritmo, pressão temporal', questoes: [1,2,3,4,5,6,7,8], invertida: true, cor: '#e74c3c' },
+    controle: { nome: 'Controle/Autonomia', descricao: 'Autonomia, participação em decisões', questoes: [9,10,11,12,13,14], invertida: false, cor: '#3498db' },
+    apoioGerencial: { nome: 'Apoio da Gestão', descricao: 'Suporte de superiores, feedback', questoes: [15,16,17,18,19], invertida: false, cor: '#9b59b6' },
+    apoioColegas: { nome: 'Apoio dos Colegas', descricao: 'Colaboração, clima organizacional', questoes: [20,21,22,23,24], invertida: false, cor: '#1abc9c' },
+    relacionamentos: { nome: 'Relacionamentos', descricao: 'Conflitos, assédio, comportamentos', questoes: [25,26,27,28,29], invertida: true, cor: '#e67e22' },
+    funcao: { nome: 'Clareza de Função', descricao: 'Papel, expectativas, responsabilidades', questoes: [30,31,32,33,34], invertida: false, cor: '#2ecc71' },
+    mudancas: { nome: 'Gestão de Mudanças', descricao: 'Comunicação sobre mudanças', questoes: [35,36,37,38,39], invertida: false, cor: '#f39c12' }
+};
+
+const QUESTOES = [
+    { id: 1, texto: 'Diferentes grupos/pessoas no trabalho exigem de mim coisas difíceis de conciliar.', dimensao: 'demandas' },
+    { id: 2, texto: 'Tenho prazos impossíveis de cumprir.', dimensao: 'demandas' },
+    { id: 3, texto: 'Preciso trabalhar muito intensamente.', dimensao: 'demandas' },
+    { id: 4, texto: 'Preciso negligenciar algumas tarefas porque tenho muito o que fazer.', dimensao: 'demandas' },
+    { id: 5, texto: 'Sou incapaz de fazer pausas suficientes.', dimensao: 'demandas' },
+    { id: 6, texto: 'Sou pressionado(a) a trabalhar além do horário.', dimensao: 'demandas' },
+    { id: 7, texto: 'Preciso trabalhar muito rápido.', dimensao: 'demandas' },
+    { id: 8, texto: 'Tenho metas de trabalho irrealistas.', dimensao: 'demandas' },
+    { id: 9, texto: 'Posso decidir quando fazer uma pausa.', dimensao: 'controle' },
+    { id: 10, texto: 'Tenho voz ativa sobre meu ritmo de trabalho.', dimensao: 'controle' },
+    { id: 11, texto: 'Tenho liberdade para escolher como realizar meu trabalho.', dimensao: 'controle' },
+    { id: 12, texto: 'Tenho voz ativa sobre o que acontece no meu trabalho.', dimensao: 'controle' },
+    { id: 13, texto: 'Minha jornada de trabalho pode ser flexível.', dimensao: 'controle' },
+    { id: 14, texto: 'Posso decidir o que fazer no meu trabalho.', dimensao: 'controle' },
+    { id: 15, texto: 'Posso contar com meu(minha) gestor(a) para me ajudar com problemas de trabalho.', dimensao: 'apoioGerencial' },
+    { id: 16, texto: 'Recebo feedback útil do(a) meu(minha) gestor(a) sobre o trabalho que faço.', dimensao: 'apoioGerencial' },
+    { id: 17, texto: 'Posso conversar com meu(minha) gestor(a) sobre algo que me chateou no trabalho.', dimensao: 'apoioGerencial' },
+    { id: 18, texto: 'Sou apoiado(a) em trabalhos emocionalmente exigentes.', dimensao: 'apoioGerencial' },
+    { id: 19, texto: 'Meu(minha) gestor(a) me encoraja no trabalho.', dimensao: 'apoioGerencial' },
+    { id: 20, texto: 'Meus colegas de trabalho me ajudam e apoiam quando necessário.', dimensao: 'apoioColegas' },
+    { id: 21, texto: 'Recebo o respeito que mereço dos meus colegas de trabalho.', dimensao: 'apoioColegas' },
+    { id: 22, texto: 'Meus colegas estão dispostos a ouvir meus problemas de trabalho.', dimensao: 'apoioColegas' },
+    { id: 23, texto: 'Existe um bom clima de colaboração na minha equipe de trabalho.', dimensao: 'apoioColegas' },
+    { id: 24, texto: 'Tenho bom relacionamento com meus colegas de trabalho.', dimensao: 'apoioColegas' },
+    { id: 25, texto: 'Existem atritos ou conflitos entre colegas na minha área de trabalho.', dimensao: 'relacionamentos' },
+    { id: 26, texto: 'Sofro assédio, na forma de palavras ou comportamento ofensivo.', dimensao: 'relacionamentos' },
+    { id: 27, texto: 'Existem situações de intimidação no meu ambiente de trabalho.', dimensao: 'relacionamentos' },
+    { id: 28, texto: 'Os relacionamentos no meu ambiente de trabalho são tensos.', dimensao: 'relacionamentos' },
+    { id: 29, texto: 'Há fofocas e rumores que prejudicam o ambiente de trabalho.', dimensao: 'relacionamentos' },
+    { id: 30, texto: 'Sei claramente o que é esperado de mim no trabalho.', dimensao: 'funcao' },
+    { id: 31, texto: 'Sei como fazer para cumprir as responsabilidades do meu trabalho.', dimensao: 'funcao' },
+    { id: 32, texto: 'Tenho clareza sobre meus deveres e responsabilidades.', dimensao: 'funcao' },
+    { id: 33, texto: 'Sei quais são os objetivos e metas do meu trabalho.', dimensao: 'funcao' },
+    { id: 34, texto: 'Entendo como meu trabalho se encaixa nos objetivos da organização.', dimensao: 'funcao' },
+    { id: 35, texto: 'Tenho oportunidades de questionar gestores sobre mudanças no trabalho.', dimensao: 'mudancas' },
+    { id: 36, texto: 'Os funcionários são sempre consultados sobre mudanças no trabalho.', dimensao: 'mudancas' },
+    { id: 37, texto: 'Quando ocorrem mudanças, sei como elas vão funcionar na prática.', dimensao: 'mudancas' },
+    { id: 38, texto: 'Sou informado(a) com antecedência sobre mudanças que afetam meu trabalho.', dimensao: 'mudancas' },
+    { id: 39, texto: 'As mudanças na organização são bem planejadas e comunicadas.', dimensao: 'mudancas' }
+];
+
+const ESCALA = [
+    { valor: 1, label: 'Nunca' },
+    { valor: 2, label: 'Raramente' },
+    { valor: 3, label: 'Às vezes' },
+    { valor: 4, label: 'Frequentemente' },
+    { valor: 5, label: 'Sempre' }
+];
+
+const RECOMENDACOES = {
+    'Demandas do Trabalho': ['Realizar análise da distribuição de tarefas e carga de trabalho', 'Implementar pausas programadas durante a jornada', 'Estabelecer priorização clara de tarefas e metas realistas', 'Revisar processos para eliminar retrabalhos'],
+    'Controle/Autonomia': ['Aumentar participação dos trabalhadores em decisões', 'Implementar programa de sugestões e melhorias', 'Flexibilizar métodos de trabalho quando possível', 'Proporcionar maior autonomia na organização das tarefas'],
+    'Apoio da Gestão': ['Capacitar lideranças em gestão de pessoas', 'Implementar reuniões periódicas de feedback', 'Criar canais de comunicação abertos com a gestão', 'Desenvolver programa de reconhecimento'],
+    'Apoio dos Colegas': ['Promover atividades de integração entre equipes', 'Implementar trabalho colaborativo em projetos', 'Criar espaços para interação social', 'Desenvolver programa de mentoria entre pares'],
+    'Relacionamentos': ['Implementar política de prevenção ao assédio (NR-5)', 'Criar canal de denúncias confidencial', 'Realizar treinamentos sobre respeito e diversidade', 'Estabelecer procedimentos para resolução de conflitos'],
+    'Clareza de Função': ['Revisar e atualizar descrições de cargo', 'Comunicar claramente expectativas e responsabilidades', 'Definir indicadores de desempenho objetivos', 'Realizar reuniões de alinhamento periódicas'],
+    'Gestão de Mudanças': ['Melhorar comunicação sobre mudanças organizacionais', 'Envolver trabalhadores no planejamento de mudanças', 'Oferecer suporte durante períodos de transição', 'Realizar avaliações de impacto antes de mudanças']
+};
+
+// ============================================================================
+// ESTADO DA APLICAÇÃO
+// ============================================================================
+
+let dados = {
+    empresa: {},
+    consultoria: {
+        nome: 'RC ENGENHARIA - SERVIÇOS DE SEGURANÇA E SAÚDE OCUPACIONAL LTDA',
+        cnpj: '36.794.867/0001-22',
+        cidade: 'Maranguape/CE',
+        responsavel: 'Antonio Rodrigues',
+        funcao: 'Engenheiro de Segurança do Trabalho',
+        registro: 'CREA-CE 061100682-4'
+    },
+    participantes: [],
+    resultados: null,
+    logos: {
+        contratante: null,
+        contratada: null
+    },
+    codigoRastreio: null,
+    dataHoraInicio: null
+};
+
+let historico = [];
+let questaoAtualIndex = 0;
+let respostasAtuais = {};
+let graficoBarras = null;
+let graficoRadar = null;
+
+// ============================================================================
+// FUNÇÕES DE RASTREABILIDADE
+// ============================================================================
+
+function gerarCodigoRastreio() {
+    const agora = new Date();
+    const ano = agora.getFullYear().toString().slice(-2);
+    const mes = String(agora.getMonth() + 1).padStart(2, '0');
+    const dia = String(agora.getDate()).padStart(2, '0');
+    const hora = String(agora.getHours()).padStart(2, '0');
+    const min = String(agora.getMinutes()).padStart(2, '0');
+    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+    
+    return `RPS-${ano}${mes}${dia}-${hora}${min}-${random}`;
+}
+
+function gerarNovoCodigo() {
+    dados.codigoRastreio = gerarCodigoRastreio();
+    document.getElementById('codigo-rastreio').textContent = dados.codigoRastreio;
+    salvarDados();
+}
+
+function formatarDataHora(dataISO, hora) {
+    if (!dataISO) return '';
+    const partes = dataISO.split('-');
+    if (partes.length === 3) {
+        return `${partes[2]}/${partes[1]}/${partes[0]} às ${hora || '00:00'}`;
+    }
+    return dataISO;
+}
+
+// ============================================================================
+// FUNÇÕES DE NAVEGAÇÃO
+// ============================================================================
+
+function mostrarTela(tela) {
+    document.querySelectorAll('main > div').forEach(div => div.classList.add('hidden'));
+    document.getElementById('tela-' + tela).classList.remove('hidden');
+    window.scrollTo(0, 0);
+    
+    if (tela === 'historico') carregarHistorico();
+    if (tela === 'guia') renderizarGuia();
+}
+
+// ============================================================================
+// FUNÇÕES DO GUIA
+// ============================================================================
+
+function renderizarGuia() {
+    const container = document.getElementById('guia-questoes');
+    let html = '';
+    
+    Object.entries(DIMENSOES).forEach(([key, dim]) => {
+        const questoesDim = QUESTOES.filter(q => q.dimensao === key);
+        html += `
+            <div class="mb-6 border rounded-xl overflow-hidden">
+                <div class="p-4" style="background-color: ${dim.cor}20; border-left: 4px solid ${dim.cor}">
+                    <h3 class="font-bold text-lg" style="color: ${dim.cor}">${dim.nome}</h3>
+                    <p class="text-sm text-gray-600">${dim.descricao}</p>
+                    <p class="text-xs mt-1 ${dim.invertida ? 'text-red-600' : 'text-green-600'}">
+                        ${dim.invertida ? '⚠️ Escala invertida: quanto MAIOR a resposta, MAIOR o risco' : '✓ Escala normal: quanto MAIOR a resposta, MENOR o risco'}
+                    </p>
+                </div>
+                <div class="divide-y">
+                    ${questoesDim.map(q => `
+                        <div class="p-3 hover:bg-gray-50">
+                            <span class="font-semibold text-blue-600 mr-2">Q${q.id}.</span>
+                            <span class="text-gray-700">${q.texto}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+// ============================================================================
+// FUNÇÕES DE LOGO
+// ============================================================================
+
+function previewLogo(tipo) {
+    const input = document.getElementById(`logo-${tipo}`);
+    const preview = document.getElementById(`preview-logo-${tipo}`);
+    const btnRemover = document.getElementById(`btn-remover-${tipo}`);
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.classList.remove('hidden');
+            btnRemover.classList.remove('hidden');
+            dados.logos[tipo] = e.target.result;
+            salvarDados();
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function removerLogo(tipo) {
+    const input = document.getElementById(`logo-${tipo}`);
+    const preview = document.getElementById(`preview-logo-${tipo}`);
+    const btnRemover = document.getElementById(`btn-remover-${tipo}`);
+    
+    input.value = '';
+    preview.src = '';
+    preview.classList.add('hidden');
+    btnRemover.classList.add('hidden');
+    dados.logos[tipo] = null;
+    salvarDados();
+}
+
+// ============================================================================
+// FUNÇÕES DE EMPRESA
+// ============================================================================
+
+function salvarEmpresa() {
+    const nome = document.getElementById('empresa-nome').value.trim();
+    const setor = document.getElementById('empresa-setor').value.trim();
+    const dataInput = document.getElementById('empresa-data').value;
+    const horaInput = document.getElementById('empresa-hora').value;
+    
+    if (!nome || !setor) {
+        alert('Por favor, preencha o nome da empresa e o setor.');
+        return;
+    }
+    
+    if (!dataInput) {
+        alert('Por favor, preencha a data da avaliação.');
+        return;
+    }
+    
+    if (!horaInput) {
+        alert('Por favor, preencha a hora de início da avaliação.');
+        return;
+    }
+    
+    // Gerar código de rastreio se não existir
+    if (!dados.codigoRastreio) {
+        dados.codigoRastreio = gerarCodigoRastreio();
+        document.getElementById('codigo-rastreio').textContent = dados.codigoRastreio;
+    }
+    
+    dados.empresa = {
+        nome: nome,
+        cnpj: document.getElementById('empresa-cnpj').value.trim(),
+        setor: setor,
+        data: dataInput,
+        hora: horaInput
+    };
+    
+    dados.dataHoraInicio = `${dataInput}T${horaInput}`;
+    
+    dados.consultoria = {
+        nome: document.getElementById('consultoria-nome').value.trim(),
+        cnpj: document.getElementById('consultoria-cnpj').value.trim(),
+        cidade: document.getElementById('consultoria-cidade').value.trim(),
+        responsavel: document.getElementById('consultoria-responsavel').value.trim(),
+        funcao: document.getElementById('consultoria-funcao').value.trim(),
+        registro: document.getElementById('consultoria-registro').value.trim()
+    };
+    
+    salvarDados();
+    atualizarTelaParticipantes();
+    mostrarTela('participantes');
+}
+
+function formatarData(dataISO) {
+    if (!dataISO) return '';
+    const partes = dataISO.split('-');
+    if (partes.length === 3) return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    return dataISO;
+}
+
+// ============================================================================
+// FUNÇÕES DE PARTICIPANTES
+// ============================================================================
+
+function atualizarTelaParticipantes() {
+    document.getElementById('info-empresa').textContent = dados.empresa.nome;
+    document.getElementById('info-setor').textContent = dados.empresa.setor;
+    
+    const lista = document.getElementById('lista-participantes');
+    
+    if (dados.participantes.length === 0) {
+        lista.innerHTML = `
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <span class="text-blue-700 text-sm"><i class="fas fa-fingerprint mr-1"></i> Código: <strong class="font-mono">${dados.codigoRastreio || 'N/A'}</strong></span>
+            </div>
+            <p class="text-gray-500 text-center py-4">Nenhum participante registrado.</p>
+        `;
+    } else {
+        lista.innerHTML = `
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <span class="text-blue-700 text-sm"><i class="fas fa-fingerprint mr-1"></i> Código: <strong class="font-mono">${dados.codigoRastreio || 'N/A'}</strong></span>
+            </div>
+        ` + dados.participantes.map((p, i) => `
+            <div class="flex items-center justify-between bg-gray-50 rounded-lg p-3 mb-2">
+                <div class="flex items-center">
+                    <span class="w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center font-semibold mr-4">${i + 1}</span>
+                    <div>
+                        <p class="font-semibold text-gray-800">Participante ${i + 1}</p>
+                        <p class="text-sm text-gray-500">${p.dataHora}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-green-600"><i class="fas fa-check-circle"></i> Concluído</span>
+                    <button onclick="removerParticipante(${i})" class="text-red-500 hover:text-red-700 ml-2">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    document.getElementById('btn-resultados').disabled = dados.participantes.length === 0;
+}
+
+function removerParticipante(index) {
+    if (confirm('Remover este participante?')) {
+        dados.participantes.splice(index, 1);
+        salvarDados();
+        atualizarTelaParticipantes();
+    }
+}
+
+// ============================================================================
+// FUNÇÕES DO QUESTIONÁRIO
+// ============================================================================
+
+function iniciarQuestionario() {
+    questaoAtualIndex = 0;
+    respostasAtuais = {};
+    mostrarTela('questionario');
+    renderizarQuestao();
+}
+
+function renderizarQuestao() {
+    const questao = QUESTOES[questaoAtualIndex];
+    const dimensao = DIMENSOES[questao.dimensao];
+    
+    const progresso = ((questaoAtualIndex + 1) / QUESTOES.length) * 100;
+    document.getElementById('questao-atual').textContent = questaoAtualIndex + 1;
+    document.getElementById('progresso-pct').textContent = Math.round(progresso);
+    document.getElementById('barra-progresso').style.width = progresso + '%';
+    
+    const badge = document.getElementById('dimensao-badge');
+    badge.textContent = dimensao.nome;
+    badge.style.backgroundColor = dimensao.cor + '20';
+    badge.style.color = dimensao.cor;
+    
+    document.getElementById('questao-texto').innerHTML = `<strong class="text-blue-600">${questao.id}.</strong> ${questao.texto}`;
+    
+    const opcoesDiv = document.getElementById('opcoes-resposta');
+    opcoesDiv.innerHTML = ESCALA.map(e => `
+        <button onclick="responder(${e.valor})" class="w-full p-4 rounded-lg border-2 transition text-left flex items-center gap-3 ${respostasAtuais[questao.id] === e.valor ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}">
+            <span class="w-10 h-10 rounded-full flex items-center justify-center font-semibold ${respostasAtuais[questao.id] === e.valor ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600'}">${e.valor}</span>
+            <span class="text-gray-700">${e.label}</span>
+        </button>
+    `).join('');
+    
+    document.getElementById('btn-anterior').classList.toggle('hidden', questaoAtualIndex === 0);
+    
+    const todasRespondidas = Object.keys(respostasAtuais).length === QUESTOES.length;
+    document.getElementById('btn-finalizar').classList.toggle('hidden', !todasRespondidas || questaoAtualIndex !== QUESTOES.length - 1);
+}
+
+function responder(valor) {
+    const questao = QUESTOES[questaoAtualIndex];
+    respostasAtuais[questao.id] = valor;
+    
+    if (questaoAtualIndex < QUESTOES.length - 1) {
+        questaoAtualIndex++;
+        renderizarQuestao();
+    } else {
+        renderizarQuestao();
+    }
+}
+
+function questaoAnterior() {
+    if (questaoAtualIndex > 0) {
+        questaoAtualIndex--;
+        renderizarQuestao();
+    }
+}
+
+function finalizarQuestionario() {
+    if (Object.keys(respostasAtuais).length < QUESTOES.length) {
+        alert('Por favor, responda todas as questões.');
+        return;
+    }
+    
+    dados.participantes.push({
+        respostas: { ...respostasAtuais },
+        dataHora: new Date().toLocaleString('pt-BR')
+    });
+    
+    salvarDados();
+    atualizarTelaParticipantes();
+    mostrarTela('participantes');
+}
+
+// ============================================================================
+// FUNÇÕES DE CÁLCULO E RESULTADOS
+// ============================================================================
+
+function getNivelRisco(escore) {
+    if (escore < 25) return { nivel: 'CRÍTICO', cor: '#c0392b', bg: '#fadbd8', classe: 'nivel-critico', acao: 'Intervenção imediata necessária', prazo: '30 dias' };
+    if (escore < 50) return { nivel: 'ALTO', cor: '#d35400', bg: '#fdebd0', classe: 'nivel-alto', acao: 'Ação prioritária recomendada', prazo: '90 dias' };
+    if (escore < 75) return { nivel: 'MODERADO', cor: '#f39c12', bg: '#fcf3cf', classe: 'nivel-moderado', acao: 'Monitoramento e melhorias', prazo: '180 dias' };
+    return { nivel: 'BAIXO', cor: '#27ae60', bg: '#d5f5e3', classe: 'nivel-baixo', acao: 'Manter práticas atuais', prazo: 'Contínuo' };
+}
+
+function calcularResultados() {
+    const resultados = { dimensoes: {} };
+    
+    Object.entries(DIMENSOES).forEach(([key, dim]) => {
+        let soma = 0, count = 0;
+        
+        dados.participantes.forEach(p => {
+            dim.questoes.forEach(qId => {
+                if (p.respostas[qId]) {
+                    soma += p.respostas[qId];
+                    count++;
+                }
+            });
+        });
+        
+        const media = count > 0 ? soma / count : 0;
+        let escore = dim.invertida ? 100 - ((media - 1) / 4 * 100) : ((media - 1) / 4 * 100);
+        escore = Math.max(0, Math.min(100, escore));
+        
+        resultados.dimensoes[key] = {
+            ...dim,
+            media: media.toFixed(2),
+            escore: escore.toFixed(1),
+            risco: getNivelRisco(escore)
+        };
+    });
+    
+    const escoreGeral = Object.values(resultados.dimensoes).reduce((acc, d) => acc + parseFloat(d.escore), 0) / 7;
+    resultados.escoreGeral = escoreGeral.toFixed(1);
+    resultados.riscoGeral = getNivelRisco(escoreGeral);
+    resultados.nParticipantes = dados.participantes.length;
+    
+    return resultados;
+}
+
+function verResultados() {
+    if (dados.participantes.length === 0) {
+        alert('Nenhum participante registrado.');
+        return;
+    }
+    
+    dados.resultados = calcularResultados();
+    renderizarResultados();
+    mostrarTela('resultados');
+}
+
+function renderizarResultados() {
+    const r = dados.resultados;
+    
+    document.getElementById('dados-avaliacao').innerHTML = `
+        <div class="md:col-span-2 bg-blue-50 p-3 rounded-lg border border-blue-200">
+            <strong class="text-blue-800"><i class="fas fa-fingerprint mr-1"></i>Código de Rastreio:</strong> 
+            <span class="font-mono text-blue-700 font-bold">${dados.codigoRastreio || 'N/A'}</span>
+        </div>
+        <div><strong>Empresa:</strong> ${dados.empresa.nome}</div>
+        <div><strong>Setor:</strong> ${dados.empresa.setor}</div>
+        <div><strong>CNPJ:</strong> ${dados.empresa.cnpj || 'Não informado'}</div>
+        <div><strong>Data/Hora:</strong> ${formatarDataHora(dados.empresa.data, dados.empresa.hora)}</div>
+        <div><strong>Participantes:</strong> ${r.nParticipantes}</div>
+        <div><strong>Consultoria:</strong> ${dados.consultoria.nome}</div>
+    `;
+    
+    const criticas = Object.values(r.dimensoes).filter(d => d.risco.nivel === 'CRÍTICO');
+    const altas = Object.values(r.dimensoes).filter(d => d.risco.nivel === 'ALTO');
+    
+    let alertasHTML = '';
+    if (criticas.length > 0) {
+        alertasHTML += `<div class="bg-red-50 border border-red-200 rounded-lg p-4"><div class="flex items-center gap-2 text-red-700 font-semibold"><i class="fas fa-exclamation-triangle"></i> ${criticas.length} dimensão(ões) em nível CRÍTICO</div></div>`;
+    }
+    if (altas.length > 0) {
+        alertasHTML += `<div class="bg-orange-50 border border-orange-200 rounded-lg p-4 mt-2"><div class="flex items-center gap-2 text-orange-700 font-semibold"><i class="fas fa-exclamation-circle"></i> ${altas.length} dimensão(ões) em nível ALTO</div></div>`;
+    }
+    
+    document.getElementById('resultado-geral').innerHTML = `
+        <div class="text-center p-8 rounded-xl flex-1" style="background-color: ${r.riscoGeral.bg}">
+            <div class="text-5xl font-bold mb-2" style="color: ${r.riscoGeral.cor}">${r.escoreGeral}</div>
+            <div class="text-gray-600">Escore Geral (0-100)</div>
+            <span class="mt-3 inline-block px-6 py-2 rounded-full text-white font-semibold text-lg" style="background-color: ${r.riscoGeral.cor}">${r.riscoGeral.nivel}</span>
+            <p class="mt-3 text-sm text-gray-600">${r.riscoGeral.acao}</p>
+        </div>
+        ${alertasHTML ? `<div class="flex-1">${alertasHTML}</div>` : ''}
+    `;
+    
+    document.getElementById('tbody-resultados').innerHTML = Object.values(r.dimensoes).map(dim => `
+        <tr style="background-color: ${dim.risco.bg}">
+            <td class="p-4 font-medium">
+                <span class="w-3 h-3 rounded-full inline-block mr-2" style="background-color: ${dim.cor}"></span>
+                ${dim.nome}
+            </td>
+            <td class="p-4 text-center font-bold text-lg">${dim.escore}</td>
+            <td class="p-4 text-center">
+                <span class="px-3 py-1 rounded-full text-white text-xs font-semibold" style="background-color: ${dim.risco.cor}">${dim.risco.nivel}</span>
+            </td>
+            <td class="p-4">${dim.risco.acao}</td>
+        </tr>
+    `).join('');
+    
+    const problematicas = Object.values(r.dimensoes).filter(d => ['CRÍTICO', 'ALTO'].includes(d.risco.nivel));
+    if (problematicas.length > 0) {
+        document.getElementById('plano-acao').innerHTML = `
+            <h2 class="font-bold text-gray-800 mb-4"><i class="fas fa-tasks mr-2 text-blue-600"></i> Plano de Ação Recomendado</h2>
+            ${problematicas.map(dim => `
+                <div class="mb-6 last:mb-0 p-4 rounded-lg" style="background-color: ${dim.risco.bg}">
+                    <h3 class="font-semibold text-gray-800 mb-3">
+                        <span class="px-3 py-1 rounded-full text-white text-sm mr-2" style="background-color: ${dim.risco.cor}">${dim.risco.nivel}</span>
+                        ${dim.nome} (Escore: ${dim.escore})
+                    </h3>
+                    <ul class="space-y-2 text-sm text-gray-700">
+                        ${(RECOMENDACOES[dim.nome] || []).map(rec => `<li><i class="fas fa-check-circle text-green-500 mr-2"></i>${rec}</li>`).join('')}
+                    </ul>
+                </div>
+            `).join('')}
+        `;
+    } else {
+        document.getElementById('plano-acao').innerHTML = `
+            <h2 class="font-bold text-gray-800 mb-4"><i class="fas fa-tasks mr-2 text-blue-600"></i> Plano de Ação</h2>
+            <p class="text-green-700 bg-green-50 p-4 rounded-lg">
+                <i class="fas fa-check-circle mr-2"></i>
+                Nenhuma dimensão em nível crítico ou alto. Recomenda-se manter as práticas atuais e monitoramento contínuo.
+            </p>
+        `;
+    }
+    
+    renderizarGraficos();
+}
+
+function renderizarGraficos() {
+    const r = dados.resultados;
+    const dimensoes = Object.values(r.dimensoes);
+    
+    if (graficoBarras) graficoBarras.destroy();
+    if (graficoRadar) graficoRadar.destroy();
+    
+    const ctxBarras = document.getElementById('grafico-barras').getContext('2d');
+    graficoBarras = new Chart(ctxBarras, {
+        type: 'bar',
+        data: {
+            labels: dimensoes.map(d => d.nome),
+            datasets: [{
+                label: 'Escore',
+                data: dimensoes.map(d => parseFloat(d.escore)),
+                backgroundColor: dimensoes.map(d => d.risco.cor + '80'),
+                borderColor: dimensoes.map(d => d.risco.cor),
+                borderWidth: 2
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { x: { min: 0, max: 100 } },
+            plugins: { legend: { display: false } }
+        }
+    });
+    
+    const ctxRadar = document.getElementById('grafico-radar').getContext('2d');
+    graficoRadar = new Chart(ctxRadar, {
+        type: 'radar',
+        data: {
+            labels: dimensoes.map(d => d.nome.split(' ')[0]),
+            datasets: [{
+                label: 'Escore',
+                data: dimensoes.map(d => parseFloat(d.escore)),
+                backgroundColor: 'rgba(40, 116, 166, 0.3)',
+                borderColor: '#2874a6',
+                borderWidth: 2,
+                pointBackgroundColor: '#2874a6'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { r: { min: 0, max: 100 } }
+        }
+    });
+}
+
+// ============================================================================
+// FUNÇÕES DE HISTÓRICO
+// ============================================================================
+
+function carregarHistorico() {
+    const saved = localStorage.getItem('historicoAvaliacoes');
+    historico = saved ? JSON.parse(saved) : [];
+    
+    const empresas = [...new Set(historico.map(h => h.empresa.nome))];
+    const select = document.getElementById('filtro-empresa');
+    select.innerHTML = '<option value="">Todas as empresas</option>' +
+        empresas.map(e => `<option value="${e}">${e}</option>`).join('');
+    
+    filtrarHistorico();
+}
+
+function filtrarHistorico() {
+    const filtro = document.getElementById('filtro-empresa').value;
+    const itens = filtro ? historico.filter(h => h.empresa.nome === filtro) : historico;
+    
+    const lista = document.getElementById('lista-historico');
+    
+    if (itens.length === 0) {
+        lista.innerHTML = `
+            <div class="text-center py-12">
+                <i class="fas fa-inbox text-6xl text-gray-300 mb-4"></i>
+                <p class="text-gray-500">Nenhuma avaliação salva no histórico.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    lista.innerHTML = itens.map((item, index) => {
+        const realIndex = historico.indexOf(item);
+        return `
+        <div class="bg-gray-50 rounded-xl p-4 mb-4 border">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="font-mono text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">${item.codigoRastreio || 'N/A'}</span>
+                    </div>
+                    <h3 class="font-bold text-gray-800 text-lg">${item.empresa.nome}</h3>
+                    <p class="text-gray-600 text-sm">
+                        <i class="fas fa-industry mr-1"></i> ${item.empresa.setor}
+                        <span class="mx-2">|</span>
+                        <i class="fas fa-calendar mr-1"></i> ${formatarData(item.empresa.data)}
+                        ${item.empresa.hora ? `<i class="fas fa-clock ml-2 mr-1"></i> ${item.empresa.hora}` : ''}
+                        <span class="mx-2">|</span>
+                        <i class="fas fa-users mr-1"></i> ${item.resultados.nParticipantes} participante(s)
+                    </p>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold" style="color: ${item.resultados.riscoGeral.cor}">${item.resultados.escoreGeral}</div>
+                    <span class="px-3 py-1 rounded-full text-white text-xs font-semibold" style="background-color: ${item.resultados.riscoGeral.cor}">
+                        ${item.resultados.riscoGeral.nivel}
+                    </span>
+                </div>
+            </div>
+            <div class="flex gap-2 mt-4">
+                <button onclick="carregarDoHistorico(${realIndex})" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
+                    <i class="fas fa-eye mr-1"></i> Ver
+                </button>
+                <button onclick="gerarPDFDoHistorico(${realIndex})" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm">
+                    <i class="fas fa-file-pdf mr-1"></i> PDF
+                </button>
+                <button onclick="removerDoHistorico(${realIndex})" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-lg text-sm">
+                    <i class="fas fa-trash mr-1"></i> Excluir
+                </button>
+            </div>
+        </div>
+    `}).join('');
+}
+
+function salvarNoHistorico() {
+    const item = {
+        id: Date.now(),
+        codigoRastreio: dados.codigoRastreio,
+        empresa: { ...dados.empresa },
+        consultoria: { ...dados.consultoria },
+        participantes: [...dados.participantes],
+        resultados: { ...dados.resultados },
+        logos: { ...dados.logos },
+        dataSalvamento: new Date().toLocaleString('pt-BR')
+    };
+    
+    historico.unshift(item);
+    localStorage.setItem('historicoAvaliacoes', JSON.stringify(historico));
+    
+    alert(`Avaliação salva no histórico!\nCódigo: ${dados.codigoRastreio}`);
+}
+
+function carregarDoHistorico(index) {
+    const item = historico[index];
+    dados.empresa = { ...item.empresa };
+    dados.consultoria = item.consultoria || dados.consultoria;
+    dados.participantes = [...item.participantes];
+    dados.resultados = { ...item.resultados };
+    dados.logos = item.logos || { contratante: null, contratada: null };
+    dados.codigoRastreio = item.codigoRastreio || null;
+    
+    renderizarResultados();
+    mostrarTela('resultados');
+}
+
+function gerarPDFDoHistorico(index) {
+    const item = historico[index];
+    dados.empresa = { ...item.empresa };
+    dados.consultoria = item.consultoria || dados.consultoria;
+    dados.participantes = [...item.participantes];
+    dados.resultados = { ...item.resultados };
+    dados.logos = item.logos || { contratante: null, contratada: null };
+    dados.codigoRastreio = item.codigoRastreio || null;
+    gerarPDF();
+}
+
+function removerDoHistorico(index) {
+    if (confirm('Tem certeza que deseja excluir esta avaliação do histórico?')) {
+        historico.splice(index, 1);
+        localStorage.setItem('historicoAvaliacoes', JSON.stringify(historico));
+        filtrarHistorico();
+    }
+}
+
+// ============================================================================
+// FUNÇÕES DE EXPORTAÇÃO PDF - LAYOUT PROFISSIONAL
+// ============================================================================
+
+function gerarPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const r = dados.resultados;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    
+    // Cores do tema
+    const corPrimaria = [30, 58, 138];
+    const corSecundaria = [55, 48, 163];
+    const corTexto = [33, 37, 41];
+    const corCinza = [108, 117, 125];
+    
+    function hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)] : [0, 0, 0];
+    }
+    
+    function addHeader(titulo, subtitulo) {
+        // Barra superior gradiente
+        doc.setFillColor(...corPrimaria);
+        doc.rect(0, 0, pageWidth, 35, 'F');
+        
+        // Decoração lateral
+        doc.setFillColor(...corSecundaria);
+        doc.rect(0, 0, 4, pageHeight, 'F');
+        
+        // Logos no cabeçalho
+        if (dados.logos.contratante) {
+            try {
+                doc.addImage(dados.logos.contratante, 'PNG', 10, 4, 28, 14);
+            } catch(e) {}
+        }
+        if (dados.logos.contratada) {
+            try {
+                doc.addImage(dados.logos.contratada, 'PNG', pageWidth - 38, 4, 28, 14);
+            } catch(e) {}
+        }
+        
+        // Título
+        doc.setFontSize(14);
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'bold');
+        doc.text(titulo, pageWidth / 2, 24, { align: 'center' });
+        
+        if (subtitulo) {
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(200, 200, 200);
+            doc.text(subtitulo, pageWidth / 2, 31, { align: 'center' });
+        }
+    }
+    
+    function addFooter(pageNum, totalPages) {
+        // Linha separadora
+        doc.setDrawColor(...corPrimaria);
+        doc.setLineWidth(0.3);
+        doc.line(10, pageHeight - 15, pageWidth - 10, pageHeight - 15);
+        
+        // Código de rastreio à esquerda
+        doc.setFontSize(7);
+        doc.setTextColor(...corPrimaria);
+        doc.setFont('helvetica', 'bold');
+        doc.text(dados.codigoRastreio || '', 10, pageHeight - 10);
+        
+        // Copyright no centro
+        doc.setFontSize(5);
+        doc.setTextColor(...corCinza);
+        doc.setFont('helvetica', 'normal');
+        doc.text('© 2026 RC Engenharia - CNPJ: 36.794.867/0001-22', pageWidth / 2, pageHeight - 10, { align: 'center' });
+        
+        // Número da página à direita
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...corPrimaria);
+        doc.text(`${pageNum} / ${totalPages}`, pageWidth - 10, pageHeight - 10, { align: 'right' });
+    }
+    
+    function addSectionTitle(titulo, y, icone) {
+        doc.setFillColor(245, 247, 250);
+        doc.roundedRect(10, y - 4, pageWidth - 20, 9, 2, 2, 'F');
+        
+        doc.setDrawColor(...corPrimaria);
+        doc.setLineWidth(0.8);
+        doc.line(10, y - 4, 10, y + 5);
+        
+        doc.setFontSize(9);
+        doc.setTextColor(...corPrimaria);
+        doc.setFont('helvetica', 'bold');
+        doc.text(titulo, 14, y + 2);
+        
+        return y + 10;
+    }
+    
+    function addInfoBox(label, value, x, y, width) {
+        doc.setFillColor(250, 250, 252);
+        doc.roundedRect(x, y, width, 14, 2, 2, 'F');
+        
+        doc.setFontSize(6);
+        doc.setTextColor(...corCinza);
+        doc.setFont('helvetica', 'normal');
+        doc.text(label, x + 3, y + 4);
+        
+        doc.setFontSize(8);
+        doc.setTextColor(...corTexto);
+        doc.setFont('helvetica', 'bold');
+        
+        // Truncar texto se muito longo
+        let displayValue = value || '-';
+        const maxChars = Math.floor(width / 2.2);
+        if (displayValue.length > maxChars) {
+            displayValue = displayValue.substring(0, maxChars - 3) + '...';
+        }
+        doc.text(displayValue, x + 3, y + 11);
+    }
+    
+    const totalPages = 4;
+    let pageNum = 1;
+    
+    // ===== PÁGINA 1: CAPA E DADOS =====
+    addHeader('RELATÓRIO DE AVALIAÇÃO DE RISCOS PSICOSSOCIAIS', 'Conforme NR-1 (GRO) e NR-17 (Ergonomia) - Portaria MTE nº 1.419/2024');
+    
+    let y = 42;
+    
+    // Código de Rastreio em destaque
+    doc.setFillColor(30, 58, 138);
+    doc.roundedRect(10, y, pageWidth - 20, 12, 2, 2, 'F');
+    
+    doc.setFontSize(8);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.text('CÓDIGO DE RASTREIO:', 15, y + 8);
+    
+    doc.setFontSize(11);
+    doc.text(dados.codigoRastreio || 'N/A', 60, y + 8);
+    
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Emitido em: ${formatarDataHora(dados.empresa.data, dados.empresa.hora)}`, pageWidth - 15, y + 8, { align: 'right' });
+    
+    y += 18;
+    
+    // Seção: Empresa Avaliada
+    y = addSectionTitle('EMPRESA AVALIADA (CONTRATANTE)', y);
+    
+    const boxWidth = (pageWidth - 30) / 2;
+    addInfoBox('Razão Social', dados.empresa.nome, 10, y, pageWidth - 20);
+    y += 18;
+    
+    addInfoBox('CNPJ', dados.empresa.cnpj || 'Não informado', 10, y, boxWidth);
+    addInfoBox('Setor Avaliado', dados.empresa.setor, 15 + boxWidth, y, boxWidth);
+    y += 18;
+    
+    addInfoBox('Data da Avaliação', formatarData(dados.empresa.data), 10, y, boxWidth * 0.6);
+    addInfoBox('Hora', dados.empresa.hora || 'N/A', 10 + boxWidth * 0.65, y, boxWidth * 0.4);
+    addInfoBox('Nº de Participantes', String(r.nParticipantes), 15 + boxWidth, y, boxWidth);
+    y += 22;
+    
+    // Seção: Consultoria
+    y = addSectionTitle('EMPRESA CONTRATADA (CONSULTORIA)', y);
+    
+    addInfoBox('Razão Social', dados.consultoria.nome, 10, y, pageWidth - 20);
+    y += 18;
+    
+    addInfoBox('CNPJ', dados.consultoria.cnpj, 10, y, boxWidth);
+    addInfoBox('Cidade/UF', dados.consultoria.cidade, 15 + boxWidth, y, boxWidth);
+    y += 18;
+    
+    addInfoBox('Responsável Técnico', dados.consultoria.responsavel, 10, y, boxWidth);
+    addInfoBox('Registro Profissional', dados.consultoria.registro, 15 + boxWidth, y, boxWidth);
+    y += 22;
+    
+    // Seção: Resultado Geral
+    y = addSectionTitle('RESULTADO GERAL DA AVALIAÇÃO', y);
+    
+    // Box principal do resultado
+    const nivelCor = hexToRgb(r.riscoGeral.cor);
+    
+    // Caixa do escore - reduzida para caber melhor
+    doc.setFillColor(...nivelCor);
+    doc.roundedRect(10, y, 55, 35, 4, 4, 'F');
+    
+    doc.setFontSize(26);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.text(r.escoreGeral, 37.5, y + 16, { align: 'center' });
+    
+    doc.setFontSize(11);
+    doc.text(r.riscoGeral.nivel, 37.5, y + 27, { align: 'center' });
+    
+    // Informações ao lado
+    doc.setFontSize(9);
+    doc.setTextColor(...corTexto);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Interpretação do Resultado:', 72, y + 8);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.text(r.riscoGeral.acao, 72, y + 15);
+    doc.text(`Prazo para ações: ${r.riscoGeral.prazo}`, 72, y + 22);
+    
+    // Legenda compacta
+    doc.setFontSize(6);
+    doc.setTextColor(...corCinza);
+    doc.text('Escala: CRÍTICO (0-24) | ALTO (25-49) | MODERADO (50-74) | BAIXO (75-100)', 72, y + 30);
+    
+    addFooter(pageNum, totalPages);
+    
+    // ===== PÁGINA 2: RESULTADOS DETALHADOS =====
+    doc.addPage();
+    pageNum++;
+    
+    addHeader('RESULTADOS POR DIMENSÃO', 'Análise detalhada das 7 dimensões avaliadas');
+    
+    y = 45;
+    
+    // Tabela de resultados
+    const tableData = Object.values(r.dimensoes).map(dim => [
+        dim.nome,
+        dim.escore,
+        dim.risco.nivel,
+        dim.risco.acao
+    ]);
+    
+    doc.autoTable({
+        startY: y,
+        head: [['Dimensão', 'Escore', 'Nível', 'Ação Recomendada']],
+        body: tableData,
+        headStyles: { 
+            fillColor: corPrimaria, 
+            textColor: 255, 
+            fontStyle: 'bold', 
+            fontSize: 9,
+            cellPadding: 5
+        },
+        styles: { 
+            fontSize: 8, 
+            cellPadding: 4,
+            lineColor: [220, 220, 220],
+            lineWidth: 0.1
+        },
+        columnStyles: {
+            0: { cellWidth: 50, fontStyle: 'bold' },
+            1: { cellWidth: 22, halign: 'center', fontStyle: 'bold' },
+            2: { cellWidth: 28, halign: 'center' },
+            3: { cellWidth: 'auto' }
+        },
+        alternateRowStyles: {
+            fillColor: [250, 250, 252]
+        },
+        didParseCell: function(data) {
+            if (data.section === 'body') {
+                const rowIndex = data.row.index;
+                const nivel = tableData[rowIndex][2];
+                if (data.column.index === 2) {
+                    if (nivel === 'CRÍTICO') {
+                        data.cell.styles.fillColor = [192, 57, 43];
+                        data.cell.styles.textColor = [255, 255, 255];
+                        data.cell.styles.fontStyle = 'bold';
+                    } else if (nivel === 'ALTO') {
+                        data.cell.styles.fillColor = [211, 84, 0];
+                        data.cell.styles.textColor = [255, 255, 255];
+                        data.cell.styles.fontStyle = 'bold';
+                    } else if (nivel === 'MODERADO') {
+                        data.cell.styles.fillColor = [243, 156, 18];
+                        data.cell.styles.textColor = [255, 255, 255];
+                        data.cell.styles.fontStyle = 'bold';
+                    } else {
+                        data.cell.styles.fillColor = [39, 174, 96];
+                        data.cell.styles.textColor = [255, 255, 255];
+                        data.cell.styles.fontStyle = 'bold';
+                    }
+                }
+            }
+        }
+    });
+    
+    y = doc.lastAutoTable.finalY + 20;
+    
+    // Legenda visual
+    y = addSectionTitle('CLASSIFICAÇÃO DOS NÍVEIS DE RISCO', y);
+    
+    const legendas = [
+        { nivel: 'CRÍTICO', cor: [192, 57, 43], desc: '0 a 24 pontos', acao: 'Intervenção imediata (30 dias)' },
+        { nivel: 'ALTO', cor: [211, 84, 0], desc: '25 a 49 pontos', acao: 'Ação prioritária (90 dias)' },
+        { nivel: 'MODERADO', cor: [243, 156, 18], desc: '50 a 74 pontos', acao: 'Monitoramento (180 dias)' },
+        { nivel: 'BAIXO', cor: [39, 174, 96], desc: '75 a 100 pontos', acao: 'Manutenção contínua' }
+    ];
+    
+    legendas.forEach((leg, i) => {
+        const lx = 10 + (i * 48);
+        
+        doc.setFillColor(...leg.cor);
+        doc.roundedRect(lx, y, 45, 25, 2, 2, 'F');
+        
+        doc.setFontSize(9);
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'bold');
+        doc.text(leg.nivel, lx + 22.5, y + 8, { align: 'center' });
+        
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.text(leg.desc, lx + 22.5, y + 15, { align: 'center' });
+        doc.text(leg.acao, lx + 22.5, y + 21, { align: 'center' });
+    });
+    
+    addFooter(pageNum, totalPages);
+    
+    // ===== PÁGINA 3: PLANO DE AÇÃO =====
+    doc.addPage();
+    pageNum++;
+    
+    addHeader('PLANO DE AÇÃO RECOMENDADO', 'Medidas de controle conforme NR-1 (GRO) - Subitem 1.5.5.2');
+    
+    y = 48;
+    
+    const problematicas = Object.values(r.dimensoes).filter(d => ['CRÍTICO', 'ALTO'].includes(d.risco.nivel));
+    
+    if (problematicas.length > 0) {
+        problematicas.forEach((dim, idx) => {
+            if (y > 240) {
+                addFooter(pageNum, totalPages);
+                doc.addPage();
+                pageNum++;
+                addHeader('PLANO DE AÇÃO RECOMENDADO (CONTINUAÇÃO)', '');
+                y = 48;
+            }
+            
+            const nivelCorDim = hexToRgb(dim.risco.cor);
+            
+            // Cabeçalho da dimensão
+            doc.setFillColor(...nivelCorDim);
+            doc.roundedRect(10, y, pageWidth - 20, 14, 2, 2, 'F');
+            
+            doc.setFontSize(10);
+            doc.setTextColor(255, 255, 255);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`${dim.risco.nivel} | ${dim.nome}`, 15, y + 9);
+            doc.text(`Escore: ${dim.escore}`, pageWidth - 15, y + 9, { align: 'right' });
+            
+            y += 18;
+            
+            // Recomendações
+            doc.setFontSize(8);
+            doc.setTextColor(...corTexto);
+            doc.setFont('helvetica', 'normal');
+            
+            (RECOMENDACOES[dim.nome] || []).forEach((rec, i) => {
+                doc.setFillColor(250, 250, 252);
+                doc.roundedRect(12, y, pageWidth - 24, 8, 1, 1, 'F');
+                
+                doc.setTextColor(39, 174, 96);
+                doc.text('✓', 15, y + 5.5);
+                
+                doc.setTextColor(...corTexto);
+                doc.text(rec, 22, y + 5.5);
+                
+                y += 10;
+            });
+            
+            y += 8;
+        });
+    } else {
+        doc.setFillColor(39, 174, 96, 0.1);
+        doc.roundedRect(10, y, pageWidth - 20, 30, 3, 3, 'F');
+        
+        doc.setFontSize(11);
+        doc.setTextColor(39, 174, 96);
+        doc.setFont('helvetica', 'bold');
+        doc.text('✓ PARABÉNS!', pageWidth / 2, y + 12, { align: 'center' });
+        
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Nenhuma dimensão em nível crítico ou alto. Recomenda-se manter as práticas atuais.', pageWidth / 2, y + 22, { align: 'center' });
+        
+        y += 40;
+    }
+    
+    // Cronograma
+    if (y < 200) {
+        y = addSectionTitle('CRONOGRAMA DE IMPLEMENTAÇÃO', y + 8);
+        
+        doc.autoTable({
+            startY: y,
+            head: [['Prioridade', 'Prazo', 'Aplicação']],
+            body: [
+                ['IMEDIATA', 'Até 30 dias', 'Dimensões em nível CRÍTICO'],
+                ['ALTA', 'Até 90 dias', 'Dimensões em nível ALTO'],
+                ['MÉDIA', 'Até 180 dias', 'Dimensões em nível MODERADO'],
+                ['CONTÍNUA', 'Permanente', 'Monitoramento e melhoria contínua']
+            ],
+            headStyles: { fillColor: corPrimaria, fontSize: 8 },
+            styles: { fontSize: 8, cellPadding: 4 },
+            columnStyles: {
+                0: { cellWidth: 35, fontStyle: 'bold' },
+                1: { cellWidth: 35 },
+                2: { cellWidth: 'auto' }
+            }
+        });
+    }
+    
+    addFooter(pageNum, totalPages);
+    
+    // ===== PÁGINA 4: REFERÊNCIAS E ASSINATURA =====
+    doc.addPage();
+    pageNum++;
+    
+    addHeader('CONSIDERAÇÕES FINAIS', 'Fundamentação legal e responsabilidade técnica');
+    
+    y = 48;
+    
+    // Metodologia
+    y = addSectionTitle('METODOLOGIA APLICADA', y);
+    
+    doc.setFontSize(8);
+    doc.setTextColor(...corTexto);
+    doc.setFont('helvetica', 'normal');
+    
+    const metodologiaTexto = 'Este relatório foi elaborado com base no HSE Management Standards Indicator Tool, desenvolvido pelo Health and Safety Executive do Reino Unido, adaptado para a realidade brasileira conforme as Normas Regulamentadoras NR-1 (Gerenciamento de Riscos Ocupacionais) e NR-17 (Ergonomia). A avaliação contempla 7 dimensões de riscos psicossociais, com 39 questões validadas cientificamente, permitindo identificar fatores de risco relacionados ao estresse ocupacional e à saúde mental no trabalho.';
+    
+    const metodologiaLines = doc.splitTextToSize(metodologiaTexto, pageWidth - 24);
+    metodologiaLines.forEach(linha => {
+        doc.text(linha, 12, y);
+        y += 5;
+    });
+    
+    y += 10;
+    
+    // Referências
+    y = addSectionTitle('REFERÊNCIAS NORMATIVAS', y);
+    
+    doc.setFontSize(7);
+    doc.setTextColor(...corTexto);
+    doc.setFont('helvetica', 'normal');
+    
+    const refs = [
+        '• BRASIL. MTE. NR-1 - Disposições Gerais e GRO. Portaria nº 1.419/2024.',
+        '• BRASIL. MTE. NR-17 - Ergonomia. Portaria MTb nº 876/2018.',
+        '• BRASIL. MTE. Guia sobre Fatores de Riscos Psicossociais. 2025.',
+        '• HSE. Managing the causes of work-related stress. London, 2007.',
+        '• ISO 45003:2021 - Psychological health and safety at work.',
+        '• KARASEK, R.A.; THEORELL, T. Healthy work. Basic Books, 1990.',
+        '• OIT. Psychosocial factors at work. Geneva, 1986.',
+        '• CFP. Resolução nº 14/2023 - Avaliação Psicossocial.'
+    ];
+    
+    refs.forEach(ref => {
+        doc.text(ref, 12, y);
+        y += 5;
+    });
+    
+    y += 10;
+    
+    // Assinatura
+    y = addSectionTitle('RESPONSABILIDADE TÉCNICA', y);
+    
+    // Box de assinatura
+    doc.setFillColor(250, 250, 252);
+    doc.roundedRect(10, y, pageWidth - 20, 50, 3, 3, 'F');
+    
+    doc.setDrawColor(...corPrimaria);
+    doc.setLineWidth(0.5);
+    doc.line(25, y + 32, 95, y + 32);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(...corTexto);
+    doc.setFont('helvetica', 'bold');
+    doc.text(dados.consultoria.responsavel, 60, y + 38, { align: 'center' });
+    
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text(dados.consultoria.funcao, 60, y + 44, { align: 'center' });
+    doc.text(dados.consultoria.registro, 60, y + 50, { align: 'center' });
+    
+    // Data e local
+    doc.setFontSize(9);
+    doc.text(`${dados.consultoria.cidade}, ${formatarData(dados.empresa.data)}`, pageWidth - 15, y + 44, { align: 'right' });
+    
+    addFooter(pageNum, totalPages);
+    
+    // Salvar PDF
+    const codigoLimpo = (dados.codigoRastreio || 'SEM-CODIGO').replace(/[^\w-]/g, '');
+    const nomeArquivo = `Relatorio_${codigoLimpo}_${dados.empresa.nome.replace(/\s+/g, '_').replace(/[^\w]/g, '').substring(0, 30)}.pdf`;
+    doc.save(nomeArquivo);
+}
+
+// ============================================================================
+// FUNÇÕES DE EXPORTAÇÃO EXCEL
+// ============================================================================
+
+function exportarExcel() {
+    const r = dados.resultados;
+    const wb = XLSX.utils.book_new();
+    
+    const resumoData = [
+        ['AVALIAÇÃO DE RISCOS PSICOSSOCIAIS'],
+        ['RC Engenharia - Serviços de Segurança e Saúde Ocupacional'],
+        [''],
+        ['CÓDIGO DE RASTREIO', dados.codigoRastreio || 'N/A'],
+        [''],
+        ['EMPRESA AVALIADA'],
+        ['Razão Social:', dados.empresa.nome],
+        ['CNPJ:', dados.empresa.cnpj || 'Não informado'],
+        ['Setor:', dados.empresa.setor],
+        ['Data:', formatarData(dados.empresa.data)],
+        ['Hora:', dados.empresa.hora || 'N/A'],
+        ['Participantes:', r.nParticipantes],
+        [''],
+        ['CONSULTORIA'],
+        ['Razão Social:', dados.consultoria.nome],
+        ['CNPJ:', dados.consultoria.cnpj],
+        ['Responsável:', dados.consultoria.responsavel],
+        ['Registro:', dados.consultoria.registro],
+        [''],
+        ['RESULTADO GERAL'],
+        ['Escore:', r.escoreGeral],
+        ['Nível:', r.riscoGeral.nivel],
+        ['Ação:', r.riscoGeral.acao],
+        [''],
+        ['RESULTADOS POR DIMENSÃO'],
+        ['Dimensão', 'Escore', 'Nível', 'Ação Recomendada'],
+        ...Object.values(r.dimensoes).map(d => [d.nome, d.escore, d.risco.nivel, d.risco.acao]),
+        [''],
+        ['© 2026 RC Engenharia - Todos os direitos reservados']
+    ];
+    const wsResumo = XLSX.utils.aoa_to_sheet(resumoData);
+    XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo');
+    
+    const respostasHeader = ['Participante', ...QUESTOES.map(q => `Q${q.id}`)];
+    const respostasData = [
+        respostasHeader,
+        ...dados.participantes.map((p, i) => [
+            `P${i + 1}`,
+            ...QUESTOES.map(q => p.respostas[q.id] || '')
+        ])
+    ];
+    const wsRespostas = XLSX.utils.aoa_to_sheet(respostasData);
+    XLSX.utils.book_append_sheet(wb, wsRespostas, 'Respostas');
+    
+    const questoesData = [
+        ['ID', 'Dimensão', 'Questão'],
+        ...QUESTOES.map(q => [q.id, DIMENSOES[q.dimensao].nome, q.texto])
+    ];
+    const wsQuestoes = XLSX.utils.aoa_to_sheet(questoesData);
+    XLSX.utils.book_append_sheet(wb, wsQuestoes, 'Questionário');
+    
+    const codigoLimpo = (dados.codigoRastreio || 'SEM-CODIGO').replace(/[^\w-]/g, '');
+    const nomeArquivo = `Dados_${codigoLimpo}_${dados.empresa.nome.replace(/\s+/g, '_').replace(/[^\w]/g, '').substring(0, 30)}.xlsx`;
+    XLSX.writeFile(wb, nomeArquivo);
+}
+
+// ============================================================================
+// FUNÇÕES DE BACKUP
+// ============================================================================
+
+function exportarBackup() {
+    const backup = {
+        versao: '2.0',
+        sistema: 'RC Engenharia - Avaliação de Riscos Psicossociais',
+        dataExportacao: new Date().toISOString(),
+        codigoRastreioAtual: dados.codigoRastreio,
+        dadosAtuais: dados,
+        historico: historico
+    };
+    
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `backup_riscos_psicossociais_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    alert('Backup exportado com sucesso!');
+}
+
+function importarBackup() {
+    document.getElementById('input-backup').click();
+}
+
+function processarBackup(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const backup = JSON.parse(e.target.result);
+            
+            if (backup.historico) {
+                historico = backup.historico;
+                localStorage.setItem('historicoAvaliacoes', JSON.stringify(historico));
+            }
+            
+            if (backup.dadosAtuais) {
+                dados = backup.dadosAtuais;
+                if (!dados.consultoria) {
+                    dados.consultoria = {
+                        nome: 'RC ENGENHARIA - SERVIÇOS DE SEGURANÇA E SAÚDE OCUPACIONAL LTDA',
+                        cnpj: '36.794.867/0001-22',
+                        cidade: 'Maranguape/CE',
+                        responsavel: 'Antonio Rodrigues',
+                        funcao: 'Engenheiro de Segurança do Trabalho',
+                        registro: 'CREA-CE 061100682-4'
+                    };
+                }
+                if (!dados.codigoRastreio && backup.codigoRastreioAtual) {
+                    dados.codigoRastreio = backup.codigoRastreioAtual;
+                }
+                salvarDados();
+                
+                if (dados.codigoRastreio) {
+                    document.getElementById('codigo-rastreio').textContent = dados.codigoRastreio;
+                }
+            }
+            
+            alert('Backup restaurado com sucesso!');
+            mostrarTela('inicio');
+        } catch (err) {
+            alert('Erro ao ler o arquivo de backup.');
+            console.error(err);
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+}
+
+// ============================================================================
+// FUNÇÕES DE PERSISTÊNCIA
+// ============================================================================
+
+function salvarDados() {
+    localStorage.setItem('riscosPsicossociais', JSON.stringify(dados));
+}
+
+function carregarDados() {
+    const saved = localStorage.getItem('riscosPsicossociais');
+    if (saved) {
+        dados = JSON.parse(saved);
+        
+        if (!dados.logos) dados.logos = { contratante: null, contratada: null };
+        if (!dados.consultoria) {
+            dados.consultoria = {
+                nome: 'RC ENGENHARIA - SERVIÇOS DE SEGURANÇA E SAÚDE OCUPACIONAL LTDA',
+                cnpj: '36.794.867/0001-22',
+                cidade: 'Maranguape/CE',
+                responsavel: 'Antonio Rodrigues',
+                funcao: 'Engenheiro de Segurança do Trabalho',
+                registro: 'CREA-CE 061100682-4'
+            };
+        }
+        
+        if (dados.empresa.nome) {
+            document.getElementById('empresa-nome').value = dados.empresa.nome;
+            document.getElementById('empresa-cnpj').value = dados.empresa.cnpj || '';
+            document.getElementById('empresa-setor').value = dados.empresa.setor;
+            document.getElementById('empresa-data').value = dados.empresa.data;
+            document.getElementById('empresa-hora').value = dados.empresa.hora || '';
+        }
+        
+        if (dados.consultoria) {
+            document.getElementById('consultoria-nome').value = dados.consultoria.nome;
+            document.getElementById('consultoria-cnpj').value = dados.consultoria.cnpj;
+            document.getElementById('consultoria-cidade').value = dados.consultoria.cidade;
+            document.getElementById('consultoria-responsavel').value = dados.consultoria.responsavel;
+            document.getElementById('consultoria-funcao').value = dados.consultoria.funcao;
+            document.getElementById('consultoria-registro').value = dados.consultoria.registro;
+        }
+        
+        if (dados.codigoRastreio) {
+            document.getElementById('codigo-rastreio').textContent = dados.codigoRastreio;
+        }
+        
+        if (dados.logos.contratante) {
+            document.getElementById('preview-logo-contratante').src = dados.logos.contratante;
+            document.getElementById('preview-logo-contratante').classList.remove('hidden');
+            document.getElementById('btn-remover-contratante').classList.remove('hidden');
+        }
+        if (dados.logos.contratada) {
+            document.getElementById('preview-logo-contratada').src = dados.logos.contratada;
+            document.getElementById('preview-logo-contratada').classList.remove('hidden');
+            document.getElementById('btn-remover-contratada').classList.remove('hidden');
+        }
+    }
+    
+    const savedHistorico = localStorage.getItem('historicoAvaliacoes');
+    if (savedHistorico) {
+        historico = JSON.parse(savedHistorico);
+    }
+}
+
+// ============================================================================
+// INICIALIZAÇÃO
+// ============================================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Definir data e hora atuais
+    const agora = new Date();
+    document.getElementById('empresa-data').value = agora.toISOString().split('T')[0];
+    document.getElementById('empresa-hora').value = agora.toTimeString().slice(0, 5);
+    
+    // Carregar dados salvos
+    carregarDados();
+    
+    // Gerar código de rastreio se não existir
+    if (!dados.codigoRastreio) {
+        dados.codigoRastreio = gerarCodigoRastreio();
+        document.getElementById('codigo-rastreio').textContent = dados.codigoRastreio;
+    }
+});
+</script>
+
+</body>
+</html>
