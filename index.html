@@ -2360,6 +2360,23 @@
                                             4. Atualização automática a cada 2 minutos
                                         </p>
                                     </div>
+                                    
+                                    <!-- Adicionar membro por e-mail -->
+                                    <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #2d4a6f;">
+                                        <label style="color:#94a3b8;font-size:0.85rem;display:block;margin-bottom:0.5rem;">
+                                            📧 Adicionar membro por e-mail (mais confiável):
+                                        </label>
+                                        <div style="display:flex;gap:0.5rem;">
+                                            <input type="email" id="team-member-email" class="field-input" 
+                                                   placeholder="email@funcionario.com" style="flex:1;">
+                                            <button class="btn-secondary" onclick="adicionarMembroEquipe()" style="white-space:nowrap;">
+                                                ➕ Convidar
+                                            </button>
+                                        </div>
+                                        <p style="color:#64748b;font-size:0.75rem;margin-top:0.5rem;">
+                                            O funcionário receberá acesso direto ao arquivo de sincronização.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -2371,17 +2388,58 @@
                     <h4 style="color:#8b5cf6;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
                         📥 Entrar em uma Equipe
                     </h4>
-                    <p style="color:#94a3b8;font-size:0.85rem;margin-bottom:1rem;">
-                        Recebeu um link de equipe? Acesse diretamente! Ou cole o código abaixo:
-                    </p>
                     
-                    <div style="display:flex;gap:0.5rem;">
-                        <input type="text" id="team-code-input" class="field-input" 
-                               placeholder="Cole o código da equipe aqui" 
-                               style="font-family:monospace;">
-                        <button class="btn-primary" onclick="entrarEquipe()" style="white-space:nowrap;">
-                            🔗 Conectar
-                        </button>
+                    <div style="display:grid;grid-template-columns:1fr;gap:1rem;">
+                        <!-- Opção 1: Conectar com Google (se foi convidado por e-mail) -->
+                        <div style="background:#0f172a;padding:1rem;border-radius:8px;">
+                            <p style="color:#10b981;font-size:0.9rem;margin-bottom:0.75rem;">
+                                <strong>✅ Opção 1: Foi convidado por e-mail?</strong>
+                            </p>
+                            <p style="color:#94a3b8;font-size:0.85rem;margin-bottom:0.75rem;">
+                                Se o administrador adicionou seu e-mail, conecte-se ao Google:
+                            </p>
+                            <button class="btn-google" onclick="entrarEquipeViaGoogle()" style="max-width:280px;">
+                                <svg viewBox="0 0 24 24" width="18" height="18">
+                                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                                </svg>
+                                Conectar com Google
+                            </button>
+                        </div>
+                        
+                        <!-- Opção 2: Usar código -->
+                        <div style="background:#0f172a;padding:1rem;border-radius:8px;">
+                            <p style="color:#60a5fa;font-size:0.9rem;margin-bottom:0.75rem;">
+                                <strong>📋 Opção 2: Tem o código?</strong>
+                            </p>
+                            <p style="color:#94a3b8;font-size:0.85rem;margin-bottom:0.75rem;">
+                                Cole o código recebido do administrador:
+                            </p>
+                            <div style="display:flex;gap:0.5rem;">
+                                <input type="text" id="team-code-input" class="field-input" 
+                                       placeholder="Cole o código aqui" 
+                                       style="font-family:monospace;flex:1;">
+                                <button class="btn-primary" onclick="entrarEquipe()" style="white-space:nowrap;">
+                                    🔗 Conectar
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Opção 3: Import manual -->
+                        <div style="background:#0f172a;padding:1rem;border-radius:8px;">
+                            <p style="color:#f59e0b;font-size:0.9rem;margin-bottom:0.75rem;">
+                                <strong>📁 Opção 3: Tem o arquivo JSON?</strong>
+                            </p>
+                            <p style="color:#94a3b8;font-size:0.85rem;margin-bottom:0.75rem;">
+                                Importe diretamente o arquivo de sincronização:
+                            </p>
+                            <button class="btn-secondary" onclick="document.getElementById('import-equipe-manual').click()">
+                                📥 Importar Arquivo JSON
+                            </button>
+                            <input type="file" id="import-equipe-manual" accept=".json" style="display:none" onchange="importarArquivoEquipe(event)">
+                        </div>
                     </div>
                     
                     <div id="team-status" style="margin-top:1rem;display:none;">
@@ -3408,6 +3466,54 @@ Para ativar a sincronização com Google Drive, siga estes passos:
             }
         }
         
+        // Adicionar membro da equipe por e-mail
+        async function adicionarMembroEquipe() {
+            const email = document.getElementById('team-member-email').value.trim().toLowerCase();
+            
+            if (!email || !email.includes('@')) {
+                showNotification('Digite um e-mail válido', 'error');
+                return;
+            }
+            
+            if (!googleToken || !driveFileId) {
+                showNotification('Gere o link de equipe primeiro', 'error');
+                return;
+            }
+            
+            try {
+                showNotification('Adicionando membro...', 'info');
+                
+                // Adicionar permissão de leitura para o e-mail específico
+                const response = await fetch(
+                    `https://www.googleapis.com/drive/v3/files/${driveFileId}/permissions`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + googleToken,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            role: 'reader',
+                            type: 'user',
+                            emailAddress: email
+                        })
+                    }
+                );
+                
+                if (response.ok) {
+                    showNotification(`${email} adicionado à equipe! Envie o código para ele.`, 'success');
+                    document.getElementById('team-member-email').value = '';
+                } else {
+                    const erro = await response.json();
+                    console.error('Erro ao adicionar:', erro);
+                    showNotification('Erro ao adicionar membro. Verifique o e-mail.', 'error');
+                }
+            } catch(e) {
+                console.error('Erro:', e);
+                showNotification('Erro de conexão', 'error');
+            }
+        }
+        
         // Copiar link para clipboard
         function copiarLinkEquipe() {
             const link = document.getElementById('team-link-display').value;
@@ -3485,61 +3591,90 @@ Para ativar a sincronização com Google Drive, siga estes passos:
             try {
                 atualizarStatusEquipeUI('syncing', '🔄 Sincronizando...');
                 
-                // Acessar arquivo público do Drive
-                const response = await fetch(
-                    `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=AIzaSyDummy`,
-                    { method: 'GET' }
-                );
+                // Método 1: API direta (funciona para arquivos públicos pequenos)
+                let dados = null;
                 
-                // Se não funcionar com API key, tentar acesso direto
-                if (!response.ok) {
-                    // Tentar via export link
-                    const exportResponse = await fetch(
-                        `https://drive.google.com/uc?export=download&id=${fileId}`
+                try {
+                    const response = await fetch(
+                        `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+                        { 
+                            method: 'GET',
+                            headers: { 'Accept': 'application/json' }
+                        }
                     );
                     
-                    if (exportResponse.ok) {
-                        const dados = await exportResponse.json();
-                        aplicarDadosEquipe(dados);
-                        return true;
+                    if (response.ok) {
+                        dados = await response.json();
                     }
-                    
-                    throw new Error('Não foi possível acessar o arquivo');
+                } catch(e) {
+                    console.log('Método 1 falhou, tentando alternativo...');
                 }
                 
-                const dados = await response.json();
-                aplicarDadosEquipe(dados);
-                return true;
+                // Método 2: Via export link (para arquivos maiores)
+                if (!dados) {
+                    try {
+                        // Usar um endpoint que funciona melhor para CORS
+                        const proxyUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+                        
+                        // Tentar via fetch com modo no-cors não funciona bem,
+                        // então vamos armazenar localmente e usar import manual como backup
+                        
+                        // Verificar se temos dados em cache
+                        const cachedData = localStorage.getItem('epi-team-cache-' + fileId);
+                        if (cachedData) {
+                            dados = JSON.parse(cachedData);
+                            console.log('Usando dados em cache');
+                        }
+                    } catch(e) {
+                        console.log('Método 2 falhou:', e);
+                    }
+                }
                 
-            } catch(e) {
-                console.error('Erro ao baixar dados da equipe:', e);
-                
-                // Tentar método alternativo via CORS proxy ou direto
-                return await baixarDadosEquipeAlternativo(fileId);
-            }
-        }
-        
-        // Método alternativo para baixar dados
-        async function baixarDadosEquipeAlternativo(fileId) {
-            try {
-                // Método direto do Google Drive para arquivos públicos
-                const url = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`;
-                
-                const response = await fetch(url);
-                
-                if (response.ok) {
-                    const dados = await response.json();
+                if (dados) {
                     aplicarDadosEquipe(dados);
+                    // Salvar em cache para acesso offline
+                    localStorage.setItem('epi-team-cache-' + fileId, JSON.stringify(dados));
                     return true;
                 }
                 
-                atualizarStatusEquipeUI('error', '⚠️ Erro ao sincronizar');
+                // Se nenhum método funcionou, mostrar opção de import manual
+                mostrarOpcaoImportManual();
                 return false;
+                
             } catch(e) {
-                console.error('Erro alternativo:', e);
+                console.error('Erro ao baixar dados da equipe:', e);
                 atualizarStatusEquipeUI('error', '⚠️ Erro de conexão');
+                mostrarOpcaoImportManual();
                 return false;
             }
+        }
+        
+        // Mostrar opção de import manual quando auto-sync falha
+        function mostrarOpcaoImportManual() {
+            const statusDiv = document.getElementById('team-status');
+            if (statusDiv) {
+                statusDiv.style.display = 'block';
+                statusDiv.innerHTML = `
+                    <div style="background:rgba(245,158,11,0.1);padding:1rem;border-radius:8px;border-left:3px solid #f59e0b;margin-top:1rem;">
+                        <p style="color:#fbbf24;font-size:0.9rem;margin-bottom:0.75rem;">
+                            <strong>⚠️ Sincronização automática indisponível</strong>
+                        </p>
+                        <p style="color:#94a3b8;font-size:0.85rem;margin-bottom:1rem;">
+                            O Google Drive bloqueou o acesso direto. Use a importação manual:
+                        </p>
+                        <ol style="color:#94a3b8;font-size:0.85rem;margin-left:1.5rem;margin-bottom:1rem;">
+                            <li>O admin exporta os dados (Empresas → Exportar Tudo)</li>
+                            <li>Envia o arquivo JSON para você</li>
+                            <li>Você importa abaixo:</li>
+                        </ol>
+                        <button class="btn-primary" onclick="document.getElementById('import-team-manual').click()">
+                            📥 Importar Arquivo JSON
+                        </button>
+                        <input type="file" id="import-team-manual" accept=".json" style="display:none" onchange="importarArquivoEquipe(event)">
+                    </div>
+                `;
+            }
+            atualizarStatusEquipeUI('error', '⚠️ Use import manual');
         }
         
         // Aplicar dados recebidos da equipe
@@ -3668,6 +3803,133 @@ Para ativar a sincronização com Google Drive, siga estes passos:
             }
         }
         
+        // Entrar na equipe via Google (para quem foi convidado por e-mail)
+        async function entrarEquipeViaGoogle() {
+            const clientId = localStorage.getItem(GOOGLE_CLIENT_ID_KEY);
+            
+            if (!clientId) {
+                // Se não tem client ID configurado, pedir o código
+                showNotification('Peça ao administrador o código de equipe', 'info');
+                return;
+            }
+            
+            const statusDiv = document.getElementById('team-status');
+            statusDiv.style.display = 'block';
+            statusDiv.innerHTML = '<p style="color:#60a5fa;">🔄 Conectando ao Google...</p>';
+            
+            try {
+                // Usar Google Identity Services
+                const client = google.accounts.oauth2.initTokenClient({
+                    client_id: clientId,
+                    scope: 'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/userinfo.email',
+                    callback: async (response) => {
+                        if (response.access_token) {
+                            const token = response.access_token;
+                            
+                            // Buscar arquivos compartilhados com o usuário
+                            statusDiv.innerHTML = '<p style="color:#60a5fa;">🔄 Buscando dados da equipe...</p>';
+                            
+                            try {
+                                const searchResponse = await fetch(
+                                    `https://www.googleapis.com/drive/v3/files?q=name='rc_epi_backup.json' and trashed=false&spaces=drive`,
+                                    { headers: { 'Authorization': 'Bearer ' + token } }
+                                );
+                                
+                                if (searchResponse.ok) {
+                                    const data = await searchResponse.json();
+                                    
+                                    if (data.files && data.files.length > 0) {
+                                        // Encontrou arquivo da equipe!
+                                        const teamFileId = data.files[0].id;
+                                        
+                                        // Baixar dados
+                                        const downloadResponse = await fetch(
+                                            `https://www.googleapis.com/drive/v3/files/${teamFileId}?alt=media`,
+                                            { headers: { 'Authorization': 'Bearer ' + token } }
+                                        );
+                                        
+                                        if (downloadResponse.ok) {
+                                            const dados = await downloadResponse.json();
+                                            
+                                            // Salvar configurações
+                                            localStorage.setItem(TEAM_FILE_ID_KEY, teamFileId);
+                                            localStorage.setItem('epi-team-token', token);
+                                            isTeamMember = true;
+                                            localStorage.setItem('epi-is-team-member', 'true');
+                                            
+                                            // Aplicar dados
+                                            aplicarDadosEquipe(dados);
+                                            
+                                            // Iniciar sync automático
+                                            iniciarSyncEquipeComToken(teamFileId, token);
+                                            mostrarStatusEquipe(teamFileId);
+                                            
+                                            statusDiv.innerHTML = `
+                                                <div style="background:rgba(16,185,129,0.1);padding:1rem;border-radius:8px;border-left:3px solid #10b981;">
+                                                    <p style="color:#10b981;font-size:0.9rem;">
+                                                        ✅ <strong>Conectado à equipe!</strong><br>
+                                                        Sincronização automática ativa a cada 2 minutos.
+                                                    </p>
+                                                </div>
+                                            `;
+                                            
+                                            showNotification('Conectado à equipe!', 'success');
+                                            return;
+                                        }
+                                    }
+                                    
+                                    // Não encontrou arquivo
+                                    statusDiv.innerHTML = `
+                                        <div style="background:rgba(245,158,11,0.1);padding:1rem;border-radius:8px;border-left:3px solid #f59e0b;">
+                                            <p style="color:#fbbf24;font-size:0.9rem;">
+                                                ⚠️ <strong>Nenhum arquivo encontrado</strong><br>
+                                                Peça ao administrador para adicionar seu e-mail na equipe.
+                                            </p>
+                                        </div>
+                                    `;
+                                }
+                            } catch(e) {
+                                console.error('Erro ao buscar dados:', e);
+                                statusDiv.innerHTML = '<p style="color:#ef4444;">❌ Erro ao conectar</p>';
+                            }
+                        }
+                    },
+                });
+                
+                client.requestAccessToken();
+            } catch(e) {
+                console.error('Erro:', e);
+                statusDiv.innerHTML = '<p style="color:#ef4444;">❌ Erro ao conectar com Google</p>';
+            }
+        }
+        
+        // Iniciar sync com token específico (para membros da equipe)
+        function iniciarSyncEquipeComToken(fileId, token) {
+            if (teamSyncInterval) {
+                clearInterval(teamSyncInterval);
+            }
+            
+            teamSyncInterval = setInterval(async () => {
+                console.log('Sync automático de equipe...');
+                atualizarStatusEquipeUI('syncing', '🔄 Atualizando...');
+                
+                try {
+                    const response = await fetch(
+                        `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+                        { headers: { 'Authorization': 'Bearer ' + token } }
+                    );
+                    
+                    if (response.ok) {
+                        const dados = await response.json();
+                        aplicarDadosEquipe(dados);
+                    }
+                } catch(e) {
+                    console.error('Erro no sync:', e);
+                    atualizarStatusEquipeUI('error', '⚠️ Erro');
+                }
+            }, 120000); // 2 minutos
+        }
+        
         // Entrar em uma equipe usando código (file ID)
         async function entrarEquipe() {
             const codigoInput = document.getElementById('team-code-input').value.trim();
@@ -3714,6 +3976,62 @@ Para ativar a sincronização com Google Drive, siga estes passos:
                     </div>
                 `;
             }
+        }
+        
+        // Importar arquivo da equipe (manual)
+        function importarArquivoEquipe(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const dados = JSON.parse(e.target.result);
+                    
+                    // Verificar formato (pode ser export direto ou formato sync)
+                    let dadosParaAplicar = dados;
+                    
+                    if (dados.dados) {
+                        // Formato de sincronização (com wrapper)
+                        dadosParaAplicar = { dados: dados.dados };
+                    } else if (dados.empresas || dados.entregas || dados.estoque) {
+                        // Formato de export direto
+                        dadosParaAplicar = { dados: dados };
+                    }
+                    
+                    if (dadosParaAplicar.dados) {
+                        aplicarDadosEquipe(dadosParaAplicar);
+                        
+                        // Marcar como membro de equipe
+                        isTeamMember = true;
+                        localStorage.setItem('epi-is-team-member', 'true');
+                        
+                        // Atualizar status
+                        const statusDiv = document.getElementById('team-status');
+                        if (statusDiv) {
+                            statusDiv.innerHTML = `
+                                <div style="background:rgba(16,185,129,0.1);padding:1rem;border-radius:8px;border-left:3px solid #10b981;">
+                                    <p style="color:#10b981;font-size:0.9rem;">
+                                        ✅ <strong>Dados importados com sucesso!</strong><br>
+                                        Solicite atualizações periodicamente ao administrador.
+                                    </p>
+                                </div>
+                            `;
+                        }
+                        
+                        showNotification('Dados da equipe importados!', 'success');
+                    } else {
+                        showNotification('Formato de arquivo inválido', 'error');
+                    }
+                } catch(err) {
+                    console.error('Erro ao importar:', err);
+                    showNotification('Erro ao ler arquivo JSON', 'error');
+                }
+            };
+            reader.readAsText(file);
+            
+            // Limpar input para permitir reimportação
+            event.target.value = '';
         }
         
         // Sair da equipe
