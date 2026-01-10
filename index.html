@@ -2276,7 +2276,7 @@
                             <img id="google-user-photo" src="" alt="Foto">
                             <div class="info">
                                 <div class="name" id="google-user-name">Usuário Google</div>
-                                <div class="email" id="google-user-email">email@gmail.com</div>
+                                <div class="email" id="google-user-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e58088848c89a58288848c89cb868a88">[email&#160;protected]</a></div>
                             </div>
                             <button onclick="handleGoogleSignOut()" style="background:#ef4444;color:white;border:none;padding:0.5rem 1rem;border-radius:6px;font-size:0.8rem;">
                                 Desconectar
@@ -2311,6 +2311,80 @@
                                 ✅ Sincronização automática ativa. Os dados são salvos no Google Drive a cada alteração.
                             </p>
                         </div>
+                        
+                        <!-- Sincronização em Equipe -->
+                        <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid #2d4a6f;">
+                            <h4 style="color:#8b5cf6;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+                                👥 Sincronização em Equipe
+                            </h4>
+                            <p style="color:#94a3b8;font-size:0.85rem;margin-bottom:1rem;">
+                                Compartilhe um link para que outros dispositivos acessem os mesmos dados <strong>automaticamente</strong>.
+                            </p>
+                            
+                            <div id="team-code-section">
+                                <button class="btn-primary" onclick="gerarCodigoEquipe()" style="margin-bottom:1rem;">
+                                    🔑 Gerar Link de Equipe
+                                </button>
+                                
+                                <div id="team-link-section" style="display:none;">
+                                    <div style="background:#0f172a;padding:1rem;border-radius:8px;margin-bottom:1rem;">
+                                        <label style="color:#94a3b8;font-size:0.8rem;display:block;margin-bottom:0.5rem;">🔗 Link para Equipe (envie este link!):</label>
+                                        <div style="display:flex;gap:0.5rem;align-items:center;">
+                                            <input type="text" id="team-link-display" class="field-input" readonly 
+                                                   style="font-size:0.85rem;background:#1e3a5f;flex:1;" 
+                                                   placeholder="Link será gerado aqui">
+                                            <button class="btn-primary" onclick="copiarLinkEquipe()" style="white-space:nowrap;">
+                                                📋 Copiar Link
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="background:#0f172a;padding:1rem;border-radius:8px;margin-bottom:1rem;">
+                                        <label style="color:#94a3b8;font-size:0.8rem;display:block;margin-bottom:0.5rem;">🔑 Código (alternativo):</label>
+                                        <div style="display:flex;gap:0.5rem;align-items:center;">
+                                            <input type="text" id="team-code-display" class="field-input" readonly 
+                                                   style="font-family:monospace;font-size:0.8rem;background:#1e3a5f;" 
+                                                   placeholder="Código">
+                                            <button class="btn-secondary" onclick="copiarCodigoEquipe()" style="white-space:nowrap;">
+                                                📋
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="background:rgba(139,92,246,0.1);padding:0.75rem;border-radius:8px;border-left:3px solid #8b5cf6;">
+                                        <p style="color:#a78bfa;font-size:0.8rem;">
+                                            <strong>📢 Como compartilhar:</strong><br>
+                                            1. Copie o <strong>Link</strong> acima<br>
+                                            2. Envie para os funcionários (WhatsApp, E-mail, etc)<br>
+                                            3. Eles clicam no link e os dados sincronizam <strong>automaticamente!</strong><br>
+                                            4. Atualização automática a cada 2 minutos
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Entrada de Código de Equipe (para outros dispositivos) -->
+                <div class="google-config-section" style="margin-top:1rem;">
+                    <h4 style="color:#8b5cf6;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+                        📥 Entrar em uma Equipe
+                    </h4>
+                    <p style="color:#94a3b8;font-size:0.85rem;margin-bottom:1rem;">
+                        Recebeu um link de equipe? Acesse diretamente! Ou cole o código abaixo:
+                    </p>
+                    
+                    <div style="display:flex;gap:0.5rem;">
+                        <input type="text" id="team-code-input" class="field-input" 
+                               placeholder="Cole o código da equipe aqui" 
+                               style="font-family:monospace;">
+                        <button class="btn-primary" onclick="entrarEquipe()" style="white-space:nowrap;">
+                            🔗 Conectar
+                        </button>
+                    </div>
+                    
+                    <div id="team-status" style="margin-top:1rem;display:none;">
                     </div>
                 </div>
                 
@@ -2345,7 +2419,7 @@
         </div>
     </div>
 
-    <script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         // ==================== SISTEMA DE AUTENTICAÇÃO ====================
         const AUTH_KEY = 'epi-auth-session';
         const USERS_KEY = 'epi-users-db';
@@ -3255,6 +3329,435 @@ Para ativar a sincronização com Google Drive, siga estes passos:
             };
         }
         
+        // ==================== SINCRONIZAÇÃO EM EQUIPE ====================
+        
+        const TEAM_CODE_KEY = 'epi-team-code';
+        const TEAM_FILE_ID_KEY = 'epi-team-file-id';
+        let isTeamMember = false;
+        let teamSyncInterval = null;
+        
+        // Gerar código de equipe baseado no ID do arquivo
+        async function gerarCodigoEquipe() {
+            if (!driveFileId) {
+                showNotification('Sincronize primeiro com o Google Drive', 'error');
+                return;
+            }
+            
+            // Primeiro, tornar o arquivo público
+            const sucesso = await compartilharArquivoDrive();
+            if (!sucesso) {
+                showNotification('Erro ao gerar código. Tente novamente.', 'error');
+                return;
+            }
+            
+            // O "código" é o próprio file ID (necessário para acesso direto)
+            const codigo = driveFileId;
+            
+            // Salvar mapeamento
+            const teamData = {
+                code: codigo,
+                fileId: driveFileId,
+                createdAt: new Date().toISOString(),
+                owner: googleUser?.email || 'admin'
+            };
+            
+            localStorage.setItem(TEAM_CODE_KEY, JSON.stringify(teamData));
+            
+            // Gerar link de equipe
+            const linkEquipe = gerarLinkEquipe(driveFileId);
+            
+            // Mostrar código e link
+            document.getElementById('team-code-display').value = driveFileId;
+            document.getElementById('team-link-display').value = linkEquipe;
+            document.getElementById('team-link-section').style.display = 'block';
+            
+            showNotification('Link de equipe gerado com sucesso!', 'success');
+        }
+        
+        // Gerar link de equipe
+        function gerarLinkEquipe(fileId) {
+            const baseUrl = window.location.origin + window.location.pathname;
+            return `${baseUrl}?team=${fileId}`;
+        }
+        
+        // Compartilhar arquivo do Drive (tornar público)
+        async function compartilharArquivoDrive() {
+            if (!googleToken || !driveFileId) return false;
+            
+            try {
+                // Adicionar permissão de leitura para qualquer pessoa
+                const response = await fetch(
+                    `https://www.googleapis.com/drive/v3/files/${driveFileId}/permissions`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + googleToken,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            role: 'reader',
+                            type: 'anyone'
+                        })
+                    }
+                );
+                
+                return response.ok;
+            } catch(e) {
+                console.error('Erro ao compartilhar:', e);
+                return false;
+            }
+        }
+        
+        // Copiar link para clipboard
+        function copiarLinkEquipe() {
+            const link = document.getElementById('team-link-display').value;
+            if (!link || link === '') {
+                showNotification('Gere um link primeiro', 'error');
+                return;
+            }
+            
+            navigator.clipboard.writeText(link).then(() => {
+                showNotification('Link copiado! Envie para sua equipe via WhatsApp, e-mail, etc.', 'success');
+            }).catch(() => {
+                const input = document.getElementById('team-link-display');
+                input.select();
+                document.execCommand('copy');
+                showNotification('Link copiado!', 'success');
+            });
+        }
+        
+        // Copiar código para clipboard
+        function copiarCodigoEquipe() {
+            const codigo = document.getElementById('team-code-display').value;
+            if (!codigo || codigo === '') {
+                showNotification('Gere um código primeiro', 'error');
+                return;
+            }
+            
+            navigator.clipboard.writeText(codigo).then(() => {
+                showNotification('Código copiado!', 'success');
+            }).catch(() => {
+                const input = document.getElementById('team-code-display');
+                input.select();
+                document.execCommand('copy');
+                showNotification('Código copiado!', 'success');
+            });
+        }
+        
+        // Verificar se veio por link de equipe (parâmetro na URL)
+        function verificarLinkEquipe() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const teamFileId = urlParams.get('team');
+            
+            if (teamFileId && teamFileId.length > 10) {
+                console.log('Link de equipe detectado:', teamFileId);
+                
+                // Salvar file ID da equipe
+                localStorage.setItem(TEAM_FILE_ID_KEY, teamFileId);
+                isTeamMember = true;
+                localStorage.setItem('epi-is-team-member', 'true');
+                
+                // Baixar dados automaticamente
+                baixarDadosEquipe(teamFileId);
+                
+                // Iniciar sincronização automática
+                iniciarSyncEquipe(teamFileId);
+                
+                // Mostrar status de equipe na interface
+                mostrarStatusEquipe(teamFileId);
+                
+                // Limpar URL (remover parâmetro team)
+                const cleanUrl = window.location.origin + window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+            } else {
+                // Verificar se já é membro de equipe
+                const savedFileId = localStorage.getItem(TEAM_FILE_ID_KEY);
+                if (savedFileId) {
+                    isTeamMember = true;
+                    iniciarSyncEquipe(savedFileId);
+                    mostrarStatusEquipe(savedFileId);
+                }
+            }
+        }
+        
+        // Baixar dados da equipe do Google Drive (arquivo público)
+        async function baixarDadosEquipe(fileId) {
+            try {
+                atualizarStatusEquipeUI('syncing', '🔄 Sincronizando...');
+                
+                // Acessar arquivo público do Drive
+                const response = await fetch(
+                    `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=AIzaSyDummy`,
+                    { method: 'GET' }
+                );
+                
+                // Se não funcionar com API key, tentar acesso direto
+                if (!response.ok) {
+                    // Tentar via export link
+                    const exportResponse = await fetch(
+                        `https://drive.google.com/uc?export=download&id=${fileId}`
+                    );
+                    
+                    if (exportResponse.ok) {
+                        const dados = await exportResponse.json();
+                        aplicarDadosEquipe(dados);
+                        return true;
+                    }
+                    
+                    throw new Error('Não foi possível acessar o arquivo');
+                }
+                
+                const dados = await response.json();
+                aplicarDadosEquipe(dados);
+                return true;
+                
+            } catch(e) {
+                console.error('Erro ao baixar dados da equipe:', e);
+                
+                // Tentar método alternativo via CORS proxy ou direto
+                return await baixarDadosEquipeAlternativo(fileId);
+            }
+        }
+        
+        // Método alternativo para baixar dados
+        async function baixarDadosEquipeAlternativo(fileId) {
+            try {
+                // Método direto do Google Drive para arquivos públicos
+                const url = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`;
+                
+                const response = await fetch(url);
+                
+                if (response.ok) {
+                    const dados = await response.json();
+                    aplicarDadosEquipe(dados);
+                    return true;
+                }
+                
+                atualizarStatusEquipeUI('error', '⚠️ Erro ao sincronizar');
+                return false;
+            } catch(e) {
+                console.error('Erro alternativo:', e);
+                atualizarStatusEquipeUI('error', '⚠️ Erro de conexão');
+                return false;
+            }
+        }
+        
+        // Aplicar dados recebidos da equipe
+        function aplicarDadosEquipe(dados) {
+            if (!dados || !dados.dados) {
+                console.log('Dados inválidos recebidos');
+                return;
+            }
+            
+            const dadosInternos = dados.dados;
+            
+            // Verificar se dados são mais recentes
+            const localDate = localStorage.getItem('epi-last-modified') || '2000-01-01';
+            const remoteDate = dados.dataSync || '2000-01-01';
+            
+            if (new Date(remoteDate) >= new Date(localDate)) {
+                // Aplicar dados
+                if (dadosInternos.entregas) {
+                    entregas = dadosInternos.entregas;
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(entregas));
+                }
+                if (dadosInternos.estoque) {
+                    estoque = dadosInternos.estoque;
+                    localStorage.setItem(ESTOQUE_KEY, JSON.stringify(estoque));
+                }
+                if (dadosInternos.empresas) {
+                    empresas = dadosInternos.empresas;
+                    localStorage.setItem(EMPRESAS_KEY, JSON.stringify(empresas));
+                }
+                if (dadosInternos.config) {
+                    localStorage.setItem(CONFIG_KEY, JSON.stringify(dadosInternos.config));
+                }
+                if (dadosInternos.usuarios) {
+                    // Mesclar usuários mantendo admin local
+                    const usersLocal = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+                    const adminLocal = usersLocal.find(u => u.username === 'admin');
+                    let novoUsers = dadosInternos.usuarios.filter(u => u.username !== 'admin');
+                    if (adminLocal) novoUsers.unshift(adminLocal);
+                    localStorage.setItem(USERS_KEY, JSON.stringify(novoUsers));
+                }
+                
+                localStorage.setItem('epi-last-modified', remoteDate);
+                
+                // Atualizar UI
+                updateUI();
+                updateEstoqueUI();
+                updateEmpresasUI();
+                
+                const agora = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                atualizarStatusEquipeUI('synced', `✅ Atualizado às ${agora}`);
+                
+                console.log('Dados da equipe aplicados com sucesso');
+            } else {
+                atualizarStatusEquipeUI('synced', '✅ Dados atualizados');
+            }
+        }
+        
+        // Iniciar sincronização automática a cada 2 minutos
+        function iniciarSyncEquipe(fileId) {
+            // Limpar intervalo anterior se existir
+            if (teamSyncInterval) {
+                clearInterval(teamSyncInterval);
+            }
+            
+            // Sincronizar a cada 2 minutos (120000 ms)
+            teamSyncInterval = setInterval(() => {
+                console.log('Sincronização automática de equipe...');
+                baixarDadosEquipe(fileId);
+            }, 120000);
+            
+            console.log('Sincronização automática de equipe iniciada (a cada 2 min)');
+        }
+        
+        // Mostrar status de equipe na interface
+        function mostrarStatusEquipe(fileId) {
+            // Criar ou atualizar elemento de status
+            let statusEl = document.getElementById('team-member-status');
+            
+            if (!statusEl) {
+                statusEl = document.createElement('div');
+                statusEl.id = 'team-member-status';
+                statusEl.style.cssText = `
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    background: #1e3a5f;
+                    padding: 0.75rem 1rem;
+                    border-radius: 10px;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                    z-index: 1000;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    font-size: 0.85rem;
+                    border-left: 3px solid #8b5cf6;
+                `;
+                document.body.appendChild(statusEl);
+            }
+            
+            statusEl.innerHTML = `
+                <span style="color:#a78bfa;">👥</span>
+                <span style="color:#e2e8f0;">Equipe</span>
+                <span id="team-sync-status" style="color:#10b981;">✅ Conectado</span>
+                <button onclick="sincronizarEquipeManual()" style="background:#8b5cf6;border:none;color:white;padding:0.25rem 0.5rem;border-radius:5px;font-size:0.75rem;cursor:pointer;margin-left:0.5rem;">
+                    🔄
+                </button>
+            `;
+        }
+        
+        // Atualizar UI do status da equipe
+        function atualizarStatusEquipeUI(status, texto) {
+            const statusEl = document.getElementById('team-sync-status');
+            if (statusEl) {
+                statusEl.textContent = texto;
+                statusEl.style.color = status === 'synced' ? '#10b981' : 
+                                       status === 'syncing' ? '#60a5fa' : '#ef4444';
+            }
+        }
+        
+        // Sincronizar equipe manualmente
+        function sincronizarEquipeManual() {
+            const fileId = localStorage.getItem(TEAM_FILE_ID_KEY);
+            if (fileId) {
+                showNotification('Sincronizando...', 'info');
+                baixarDadosEquipe(fileId);
+            }
+        }
+        
+        // Entrar em uma equipe usando código (file ID)
+        async function entrarEquipe() {
+            const codigoInput = document.getElementById('team-code-input').value.trim();
+            
+            if (!codigoInput || codigoInput.length < 10) {
+                showNotification('Digite um código válido', 'error');
+                return;
+            }
+            
+            const statusDiv = document.getElementById('team-status');
+            statusDiv.style.display = 'block';
+            statusDiv.innerHTML = '<p style="color:#60a5fa;">🔄 Conectando à equipe...</p>';
+            
+            // Salvar file ID da equipe
+            localStorage.setItem(TEAM_FILE_ID_KEY, codigoInput);
+            isTeamMember = true;
+            localStorage.setItem('epi-is-team-member', 'true');
+            
+            // Baixar dados
+            const sucesso = await baixarDadosEquipe(codigoInput);
+            
+            if (sucesso) {
+                // Iniciar sync automático
+                iniciarSyncEquipe(codigoInput);
+                mostrarStatusEquipe(codigoInput);
+                
+                statusDiv.innerHTML = `
+                    <div style="background:rgba(16,185,129,0.1);padding:1rem;border-radius:8px;border-left:3px solid #10b981;">
+                        <p style="color:#10b981;font-size:0.9rem;">
+                            ✅ <strong>Conectado à equipe!</strong><br>
+                            Os dados serão atualizados automaticamente a cada 2 minutos.
+                        </p>
+                    </div>
+                `;
+                
+                showNotification('Conectado à equipe com sucesso!', 'success');
+            } else {
+                statusDiv.innerHTML = `
+                    <div style="background:rgba(239,68,68,0.1);padding:1rem;border-radius:8px;border-left:3px solid #ef4444;">
+                        <p style="color:#ef4444;font-size:0.9rem;">
+                            ❌ <strong>Erro ao conectar</strong><br>
+                            Verifique se o código está correto e tente novamente.
+                        </p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Sair da equipe
+        function sairEquipe() {
+            if (confirm('Deseja sair da equipe? Os dados locais serão mantidos.')) {
+                localStorage.removeItem(TEAM_FILE_ID_KEY);
+                localStorage.removeItem('epi-is-team-member');
+                isTeamMember = false;
+                
+                if (teamSyncInterval) {
+                    clearInterval(teamSyncInterval);
+                }
+                
+                const statusEl = document.getElementById('team-member-status');
+                if (statusEl) statusEl.remove();
+                
+                showNotification('Você saiu da equipe', 'success');
+            }
+        }
+        
+        // Verificar se é membro de equipe ao iniciar
+        function verificarMembroEquipe() {
+            // Verificar link de equipe primeiro
+            verificarLinkEquipe();
+            
+            // Carregar código existente se houver
+            const teamData = localStorage.getItem(TEAM_CODE_KEY);
+            if (teamData) {
+                try {
+                    const team = JSON.parse(teamData);
+                    const codeDisplay = document.getElementById('team-code-display');
+                    if (codeDisplay && team.code) {
+                        codeDisplay.value = team.code;
+                        // Gerar link também
+                        const linkDisplay = document.getElementById('team-link-display');
+                        if (linkDisplay) {
+                            linkDisplay.value = gerarLinkEquipe(team.code);
+                            document.getElementById('team-link-section').style.display = 'block';
+                        }
+                    }
+                } catch(e) {}
+            }
+        }
+        
         // ==================== FIM GOOGLE DRIVE SYNC ====================
         
         document.addEventListener('DOMContentLoaded', function() {
@@ -3272,6 +3775,9 @@ Para ativar a sincronização com Google Drive, siga estes passos:
             
             // Inicializar Google API após carregar dados locais
             setTimeout(initGoogleAPI, 1000);
+            
+            // Verificar se é membro de equipe
+            setTimeout(verificarMembroEquipe, 1500);
             
             document.addEventListener('click', function(e) {
                 const autocompleteList = document.getElementById('autocomplete-list');
@@ -6597,15 +7103,4 @@ Para ativar a sincronização com Google Drive, siga estes passos:
             doc.save(`devolucao_epi_${entrega.cpf.replace(/\D/g, '')}_${Date.now()}.pdf`);
         }
         
-        function formatDate(d) { return new Date(d + 'T00:00:00').toLocaleDateString('pt-BR'); }
-        
-        function showNotification(msg, type = 'success') {
-            const n = document.getElementById('notification');
-            n.className = `notification ${type}`;
-            document.getElementById('notification-text').textContent = msg;
-            n.classList.add('show');
-            setTimeout(() => n.classList.remove('show'), 3000);
-        }
-    </script>
-</body>
-</html>
+        function formatDate(d) { return new
