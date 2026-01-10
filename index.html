@@ -38,7 +38,7 @@
             color: #e2e8f0;
         }
         
-        /* ==================== TELA DE LOGIN ==================== */
+        /* ==================== TELA DE LOGIN PROFISSIONAL ==================== */
         .login-overlay {
             position: fixed;
             top: 0;
@@ -50,45 +50,167 @@
             align-items: center;
             justify-content: center;
             z-index: 10000;
+            padding: 1rem;
         }
         
         .login-overlay.hidden { display: none; }
         
-        .login-container {
-            background: #1e3a5f;
-            padding: 2.5rem;
-            border-radius: 20px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-            width: 90%;
-            max-width: 400px;
-            border: 1px solid #2d4a6f;
+        .login-wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 1100px;
+            min-height: 600px;
+            background: #0f172a;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.6);
+            border: 1px solid #1e3a5f;
         }
         
-        .login-logo {
+        /* Lado Esquerdo - Apresentação da Empresa */
+        .login-brand {
+            flex: 1;
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 50%, #1e3a8a 100%);
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .login-brand::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+        }
+        
+        .login-brand::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -30%;
+            width: 80%;
+            height: 80%;
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 50%);
+        }
+        
+        .brand-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .brand-logo .icon {
+            width: 70px;
+            height: 70px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .brand-logo h1 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.75rem;
+            color: #fff;
+            line-height: 1.2;
+        }
+        
+        .brand-logo h1 span {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: rgba(255,255,255,0.8);
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .brand-description {
+            color: rgba(255,255,255,0.9);
+            font-size: 1rem;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+        
+        .brand-features {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .brand-feature {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: rgba(255,255,255,0.9);
+            font-size: 0.95rem;
+        }
+        
+        .brand-feature .icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+        
+        .brand-contact {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .brand-contact p {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .brand-contact a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        /* Lado Direito - Formulário */
+        .login-container {
+            flex: 1;
+            max-width: 450px;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: #0f172a;
+        }
+        
+        .login-header {
             text-align: center;
             margin-bottom: 2rem;
         }
         
-        .login-logo .icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-            font-size: 2.5rem;
-        }
-        
-        .login-logo h1 {
-            font-family: 'JetBrains Mono', monospace;
+        .login-header h2 {
             font-size: 1.5rem;
-            color: #fff;
-            margin-bottom: 0.25rem;
+            color: #e2e8f0;
+            margin-bottom: 0.5rem;
         }
         
-        .login-logo p {
+        .login-header p {
             color: #64748b;
             font-size: 0.9rem;
         }
@@ -108,8 +230,8 @@
         .login-form input {
             width: 100%;
             padding: 0.875rem 1rem;
-            background: #0f172a;
-            border: 2px solid #2d4a6f;
+            background: #1e293b;
+            border: 2px solid #334155;
             border-radius: 10px;
             color: #e2e8f0;
             font-size: 1rem;
@@ -1329,6 +1451,77 @@
             color: white;
         }
         
+        /* Responsividade da Tela de Login */
+        @media (max-width: 900px) {
+            .login-wrapper {
+                flex-direction: column;
+                max-width: 500px;
+                min-height: auto;
+            }
+            
+            .login-brand {
+                padding: 2rem;
+            }
+            
+            .brand-description {
+                display: none;
+            }
+            
+            .brand-features {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+            
+            .brand-feature {
+                font-size: 0.8rem;
+            }
+            
+            .brand-feature .icon {
+                width: 28px;
+                height: 28px;
+                font-size: 0.9rem;
+            }
+            
+            .brand-contact {
+                display: none;
+            }
+            
+            .login-container {
+                padding: 2rem;
+                max-width: 100%;
+            }
+        }
+        
+        @media (max-width: 500px) {
+            .login-overlay {
+                padding: 0;
+            }
+            
+            .login-wrapper {
+                border-radius: 0;
+                min-height: 100vh;
+            }
+            
+            .login-brand {
+                padding: 1.5rem;
+            }
+            
+            .brand-logo .icon {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+            
+            .brand-logo h1 {
+                font-size: 1.25rem;
+            }
+            
+            .login-container {
+                padding: 1.5rem;
+            }
+        }
+        
         @media (max-width: 768px) {
             .header-content { flex-direction: column; }
             .nav-tabs { padding: 1rem; }
@@ -1342,95 +1535,151 @@
     <script src="https://apis.google.com/js/api.js" async defer></script>
 </head>
 <body>
-    <!-- Tela de Login -->
+    <!-- Tela de Login Profissional -->
     <div id="login-overlay" class="login-overlay">
-        <div class="login-container">
-            <div class="login-logo">
-                <div class="icon">🛡️</div>
-                <h1>RC EPI Control</h1>
-                <p>Sistema de Gestão de EPIs</p>
-            </div>
-            
-            <div id="login-error" class="login-error">
-                Usuário ou senha incorretos
-            </div>
-            
-            <form class="login-form" onsubmit="handleLogin(event)">
-                <div class="form-group">
-                    <label>E-mail ou Usuário</label>
-                    <input type="text" id="login-user" placeholder="E-mail ou usuário" required autocomplete="username">
+        <div class="login-wrapper">
+            <!-- Lado Esquerdo - Apresentação da Empresa -->
+            <div class="login-brand">
+                <div class="brand-content">
+                    <div class="brand-logo">
+                        <div class="icon">🛡️</div>
+                        <h1>
+                            RC Engenharia
+                            <span>Saúde e Segurança do Trabalho</span>
+                        </h1>
+                    </div>
+                    
+                    <p class="brand-description">
+                        Somos uma empresa especializada em <strong>Segurança e Saúde Ocupacional</strong>, 
+                        oferecendo soluções completas para proteger o que há de mais valioso: a vida dos trabalhadores.
+                        <br><br>
+                        Com profissionais qualificados e tecnologia de ponta, garantimos conformidade legal 
+                        e ambientes de trabalho mais seguros para sua empresa.
+                    </p>
+                    
+                    <div class="brand-features">
+                        <div class="brand-feature">
+                            <div class="icon">📋</div>
+                            <span>PGR / GRO / PCMSO</span>
+                        </div>
+                        <div class="brand-feature">
+                            <div class="icon">🎓</div>
+                            <span>Treinamentos NRs</span>
+                        </div>
+                        <div class="brand-feature">
+                            <div class="icon">📊</div>
+                            <span>LTCAT / PPP</span>
+                        </div>
+                        <div class="brand-feature">
+                            <div class="icon">🔥</div>
+                            <span>Brigada de Incêndio</span>
+                        </div>
+                        <div class="brand-feature">
+                            <div class="icon">⚖️</div>
+                            <span>Perícias Técnicas</span>
+                        </div>
+                        <div class="brand-feature">
+                            <div class="icon">🦺</div>
+                            <span>Gestão de EPIs</span>
+                        </div>
+                    </div>
+                    
+                    <div class="brand-contact">
+                        <p>📍 Maranguape - CE</p>
+                        <p>📧 <a href="mailto:contato@rcengenhariasst.com">contato@rcengenhariasst.com</a></p>
+                        <p>📱 <a href="tel:+5585992728108">(85) 99272-8108</a></p>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Senha</label>
-                    <input type="password" id="login-pass" placeholder="Digite sua senha" required autocomplete="current-password">
-                </div>
-                <button type="submit" class="login-btn">
-                    🔐 Entrar no Sistema
-                </button>
-            </form>
-            
-            <!-- Google Sign-In -->
-            <div class="google-signin-divider">
-                <span>ou entre com</span>
             </div>
             
-            <button type="button" class="btn-google" onclick="handleGoogleSignIn()" id="btn-google-signin">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                </svg>
-                Entrar com Google
-            </button>
-            
-            <!-- Login por E-mail Firebase -->
-            <div id="email-login-section" style="margin-top:1rem;">
-                <button type="button" onclick="toggleEmailLogin()" style="width:100%;padding:0.75rem;background:#1e3a5f;border:1px solid #3b82f6;border-radius:8px;color:#60a5fa;font-size:0.9rem;cursor:pointer;">
-                    ✉️ Entrar com E-mail
+            <!-- Lado Direito - Formulário de Login -->
+            <div class="login-container">
+                <div class="login-header">
+                    <h2>🔐 Acesso ao Sistema</h2>
+                    <p>RC EPI Control - Gestão de Equipamentos</p>
+                </div>
+                
+                <div id="login-error" class="login-error">
+                    Usuário ou senha incorretos
+                </div>
+                
+                <form class="login-form" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label>E-mail ou Usuário</label>
+                        <input type="text" id="login-user" placeholder="Digite seu e-mail ou usuário" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label>Senha</label>
+                        <input type="password" id="login-pass" placeholder="Digite sua senha" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="login-btn">
+                        🔐 Entrar no Sistema
+                    </button>
+                </form>
+                
+                <!-- Google Sign-In -->
+                <div class="google-signin-divider">
+                    <span>ou entre com</span>
+                </div>
+                
+                <button type="button" class="btn-google" onclick="handleGoogleSignIn()" id="btn-google-signin">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    </svg>
+                    Entrar com Google
                 </button>
                 
-                <div id="email-login-form" style="display:none;margin-top:1rem;padding:1rem;background:#0f172a;border-radius:8px;">
-                    <div class="form-group" style="margin-bottom:1rem;">
-                        <label style="display:block;color:#94a3b8;font-size:0.85rem;margin-bottom:0.5rem;">E-mail</label>
-                        <input type="email" id="firebase-email" placeholder="seu@email.com" style="width:100%;padding:0.75rem;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#e2e8f0;font-size:1rem;">
-                    </div>
-                    <div class="form-group" style="margin-bottom:1rem;">
-                        <label style="display:block;color:#94a3b8;font-size:0.85rem;margin-bottom:0.5rem;">Senha</label>
-                        <input type="password" id="firebase-password" placeholder="Sua senha" style="width:100%;padding:0.75rem;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#e2e8f0;font-size:1rem;">
-                    </div>
-                    <div id="firebase-login-error" style="color:#ef4444;font-size:0.85rem;margin-bottom:1rem;display:none;"></div>
-                    <div style="display:flex;gap:0.5rem;">
-                        <button type="button" onclick="loginComEmail()" style="flex:1;padding:0.75rem;background:#2563eb;border:none;border-radius:8px;color:white;font-size:0.9rem;cursor:pointer;font-weight:600;">
-                            🔐 Entrar
-                        </button>
-                        <button type="button" onclick="criarContaEmail()" style="flex:1;padding:0.75rem;background:#10b981;border:none;border-radius:8px;color:white;font-size:0.9rem;cursor:pointer;font-weight:600;">
-                            ➕ Criar Conta
-                        </button>
-                    </div>
-                    <button type="button" onclick="recuperarSenha()" style="width:100%;margin-top:0.5rem;padding:0.5rem;background:transparent;border:none;color:#64748b;font-size:0.8rem;cursor:pointer;">
-                        Esqueceu a senha?
+                <!-- Login por E-mail Firebase -->
+                <div id="email-login-section" style="margin-top:1rem;">
+                    <button type="button" onclick="toggleEmailLogin()" style="width:100%;padding:0.75rem;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#60a5fa;font-size:0.9rem;cursor:pointer;">
+                        ✉️ Entrar com E-mail
                     </button>
+                    
+                    <div id="email-login-form" style="display:none;margin-top:1rem;padding:1rem;background:#1e293b;border-radius:8px;border:1px solid #334155;">
+                        <div class="form-group" style="margin-bottom:1rem;">
+                            <label style="display:block;color:#94a3b8;font-size:0.85rem;margin-bottom:0.5rem;">E-mail</label>
+                            <input type="email" id="firebase-email" placeholder="seu@email.com" style="width:100%;padding:0.75rem;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#e2e8f0;font-size:1rem;">
+                        </div>
+                        <div class="form-group" style="margin-bottom:1rem;">
+                            <label style="display:block;color:#94a3b8;font-size:0.85rem;margin-bottom:0.5rem;">Senha</label>
+                            <input type="password" id="firebase-password" placeholder="Sua senha" style="width:100%;padding:0.75rem;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#e2e8f0;font-size:1rem;">
+                        </div>
+                        <div id="firebase-login-error" style="color:#ef4444;font-size:0.85rem;margin-bottom:1rem;display:none;"></div>
+                        <div style="display:flex;gap:0.5rem;">
+                            <button type="button" onclick="loginComEmail()" style="flex:1;padding:0.75rem;background:#2563eb;border:none;border-radius:8px;color:white;font-size:0.9rem;cursor:pointer;font-weight:600;">
+                                🔐 Entrar
+                            </button>
+                            <button type="button" onclick="criarContaEmail()" style="flex:1;padding:0.75rem;background:#10b981;border:none;border-radius:8px;color:white;font-size:0.9rem;cursor:pointer;font-weight:600;">
+                                ➕ Criar Conta
+                            </button>
+                        </div>
+                        <button type="button" onclick="recuperarSenha()" style="width:100%;margin-top:0.5rem;padding:0.5rem;background:transparent;border:none;color:#64748b;font-size:0.8rem;cursor:pointer;">
+                            Esqueceu a senha?
+                        </button>
+                    </div>
                 </div>
-            </div>
-            
-            <p style="color:#64748b;font-size:0.75rem;text-align:center;margin-top:0.75rem;">
-                ☁️ Sincronização automática na nuvem
-            </p>
-            
-            <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid #2d4a6f;">
-                <p style="color:#94a3b8;font-size:0.8rem;text-align:center;margin-bottom:0.75rem;">
-                    📱 Primeiro acesso neste dispositivo?
+                
+                <p style="color:#64748b;font-size:0.75rem;text-align:center;margin-top:1rem;">
+                    ☁️ Seus dados são sincronizados na nuvem
                 </p>
-                <button type="button" onclick="document.getElementById('import-sync-login').click()" style="width:100%;padding:0.75rem;background:#1e3a5f;border:1px solid #2d4a6f;border-radius:8px;color:#60a5fa;font-size:0.9rem;cursor:pointer;">
-                    📥 Importar Dados de Outro Dispositivo
-                </button>
-                <input type="file" id="import-sync-login" accept=".json" style="display:none" onchange="importarSincronizacaoLogin(event)">
-            </div>
-            
-            <div class="login-footer">
-                <p>RC Engenharia Saúde e Segurança Ocupacional</p>
-                <p>© 2026 - Todos os direitos reservados</p>
+                
+                <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid #334155;">
+                    <p style="color:#64748b;font-size:0.8rem;text-align:center;margin-bottom:0.75rem;">
+                        📱 Primeiro acesso neste dispositivo?
+                    </p>
+                    <button type="button" onclick="document.getElementById('import-sync-login').click()" style="width:100%;padding:0.75rem;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#60a5fa;font-size:0.9rem;cursor:pointer;">
+                        📥 Importar Dados de Outro Dispositivo
+                    </button>
+                    <input type="file" id="import-sync-login" accept=".json" style="display:none" onchange="importarSincronizacaoLogin(event)">
+                </div>
+                
+                <div class="login-footer" style="text-align:center;margin-top:1.5rem;padding-top:1rem;border-top:1px solid #334155;">
+                    <p style="color:#64748b;font-size:0.75rem;">© 2026 RC Engenharia SST</p>
+                    <p style="color:#475569;font-size:0.7rem;">Todos os direitos reservados</p>
+                </div>
             </div>
         </div>
     </div>
