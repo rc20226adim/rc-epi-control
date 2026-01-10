@@ -1357,8 +1357,8 @@
             
             <form class="login-form" onsubmit="handleLogin(event)">
                 <div class="form-group">
-                    <label>Usuário</label>
-                    <input type="text" id="login-user" placeholder="Digite seu usuário" required autocomplete="username">
+                    <label>E-mail ou Usuário</label>
+                    <input type="text" id="login-user" placeholder="E-mail ou usuário" required autocomplete="username">
                 </div>
                 <div class="form-group">
                     <label>Senha</label>
@@ -2313,7 +2313,8 @@
                         <h4 style="color:#94a3b8;font-size:0.9rem;margin-bottom:1rem;">Adicionar Novo Usuário</h4>
                         <div style="display:grid;gap:0.75rem;">
                             <input type="text" id="new-user-name" class="field-input" placeholder="Nome completo">
-                            <input type="text" id="new-user-username" class="field-input" placeholder="Nome de usuário (login)">
+                            <input type="email" id="new-user-email" class="field-input" placeholder="E-mail (para login web)">
+                            <input type="text" id="new-user-username" class="field-input" placeholder="Nome de usuário (login local)">
                             <input type="password" id="new-user-password" class="field-input" placeholder="Senha (mín. 6 caracteres)">
                             <select id="new-user-role" class="field-input" style="padding:0.75rem;" onchange="toggleEmpresaSelect()">
                                 <option value="user">Usuário (acesso básico)</option>
@@ -2328,6 +2329,9 @@
                             <button class="btn-success" onclick="addNewUser()">
                                 ➕ Adicionar Usuário
                             </button>
+                            <p style="color:#64748b;font-size:0.75rem;margin-top:0.25rem;">
+                                💡 O usuário poderá fazer login com o e-mail cadastrado ou com o nome de usuário.
+                            </p>
                         </div>
                     </div>
                     
@@ -3174,11 +3178,16 @@
         function handleLogin(e) {
             e.preventDefault();
             
-            const username = document.getElementById('login-user').value.trim().toLowerCase();
+            const loginInput = document.getElementById('login-user').value.trim().toLowerCase();
             const password = document.getElementById('login-pass').value;
             
             const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
-            const user = users.find(u => u.username.toLowerCase() === username && u.password === password);
+            
+            // Procurar por username OU email
+            const user = users.find(u => 
+                (u.username && u.username.toLowerCase() === loginInput && u.password === password) ||
+                (u.email && u.email.toLowerCase() === loginInput && u.password === password)
+            );
             
             if (user) {
                 // Verificar se usuário tem empresa vinculada (se não for dev)
@@ -3195,6 +3204,7 @@
                 
                 currentUser = {
                     username: user.username,
+                    email: user.email || null,
                     name: user.name,
                     role: user.role,
                     empresaVinculada: user.empresaVinculada || null,
@@ -3217,14 +3227,17 @@
                 }
             } else {
                 // Verificar se usuário existe para dar feedback mais específico
-                const userExists = users.find(u => u.username.toLowerCase() === username);
+                const userExists = users.find(u => 
+                    (u.username && u.username.toLowerCase() === loginInput) ||
+                    (u.email && u.email.toLowerCase() === loginInput)
+                );
                 
                 if (userExists) {
                     document.getElementById('login-error').textContent = 'Senha incorreta. Verifique e tente novamente.';
                 } else if (users.length === 0) {
                     document.getElementById('login-error').textContent = 'Nenhum usuário cadastrado. Importe os dados primeiro.';
                 } else {
-                    document.getElementById('login-error').textContent = 'Usuário não encontrado neste dispositivo.';
+                    document.getElementById('login-error').textContent = 'Usuário ou e-mail não encontrado.';
                 }
                 
                 document.getElementById('login-error').classList.add('show');
@@ -5399,6 +5412,11 @@ Para ativar a sincronização com Google Drive, siga estes passos:
                     <div style="flex:1;min-width:200px;">
                         <span style="font-weight:600;color:#e2e8f0;">${u.name}</span>
                         <span style="color:#64748b;font-size:0.85rem;margin-left:0.5rem;">@${u.username}</span>
+                        ${u.email ? `
+                            <div style="font-size:0.75rem;color:#60a5fa;margin-top:0.25rem;">
+                                ✉️ ${u.email}
+                            </div>
+                        ` : ''}
                         ${empVinculada ? `
                             <div style="font-size:0.75rem;color:#10b981;margin-top:0.25rem;">
                                 🏢 ${empVinculada.fantasia || empVinculada.razao}
@@ -5431,7 +5449,7 @@ Para ativar a sincronização com Google Drive, siga estes passos:
             
             // Select de usuários para alteração de senha
             select.innerHTML = '<option value="">Selecione o usuário</option>' + 
-                users.map(u => `<option value="${u.username}">${u.name} (@${u.username})</option>`).join('');
+                users.map(u => `<option value="${u.username}">${u.name} (@${u.username})${u.email ? ' - ' + u.email : ''}</option>`).join('');
         }
         
         function toggleEmpresaSelect() {
@@ -5536,18 +5554,29 @@ Para ativar a sincronização com Google Drive, siga estes passos:
         
         function addNewUser() {
             const name = document.getElementById('new-user-name').value.trim();
+            const email = document.getElementById('new-user-email').value.trim().toLowerCase();
             const username = document.getElementById('new-user-username').value.trim().toLowerCase();
             const password = document.getElementById('new-user-password').value;
             const role = document.getElementById('new-user-role').value;
             const empresaSelect = document.getElementById('new-user-empresa');
             const empresaVinculada = empresaSelect ? empresaSelect.value : null;
             
-            if (!name || !username || !password) {
-                showNotification('Preencha todos os campos', 'error');
+            if (!name || !password) {
+                showNotification('Preencha nome e senha', 'error');
                 return;
             }
             
-            if (username.length < 3) {
+            if (!email && !username) {
+                showNotification('Preencha e-mail ou nome de usuário', 'error');
+                return;
+            }
+            
+            if (email && !email.includes('@')) {
+                showNotification('E-mail inválido', 'error');
+                return;
+            }
+            
+            if (username && username.length < 3) {
                 showNotification('Nome de usuário deve ter no mínimo 3 caracteres', 'error');
                 return;
             }
@@ -5566,23 +5595,35 @@ Para ativar a sincronização com Google Drive, siga estes passos:
             
             const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
             
-            if (users.find(u => u.username === username)) {
+            // Verificar duplicidade de username
+            if (username && users.find(u => u.username === username)) {
                 showNotification('Nome de usuário já existe', 'error');
                 return;
             }
             
-            users.push({
-                username,
+            // Verificar duplicidade de email
+            if (email && users.find(u => u.email === email)) {
+                showNotification('E-mail já cadastrado', 'error');
+                return;
+            }
+            
+            const newUser = {
+                username: username || email.split('@')[0],
+                email: email || null,
                 password,
                 role,
                 name,
                 empresaVinculada: role === 'dev' ? null : (empresaVinculada || null),
-                permissions: role === 'dev' ? ['all'] : ['cadastro', 'consulta', 'devolucao']
-            });
+                permissions: role === 'dev' ? ['all'] : ['cadastro', 'consulta', 'devolucao'],
+                dataCriacao: new Date().toISOString()
+            };
             
+            users.push(newUser);
             localStorage.setItem(USERS_KEY, JSON.stringify(users));
             
+            // Limpar formulário
             document.getElementById('new-user-name').value = '';
+            document.getElementById('new-user-email').value = '';
             document.getElementById('new-user-username').value = '';
             document.getElementById('new-user-password').value = '';
             document.getElementById('new-user-role').value = 'user';
@@ -5593,6 +5634,37 @@ Para ativar a sincronização com Google Drive, siga estes passos:
             const emp = empresaVinculada ? empresas.find(e => e.cnpj === empresaVinculada) : null;
             const empNome = emp ? ` (${emp.fantasia || emp.razao})` : '';
             showNotification(`Usuário ${name}${empNome} criado com sucesso!`, 'success');
+            
+            // Se tem e-mail, oferecer criar conta Firebase
+            if (email && firebaseEnabled) {
+                if (confirm(`Deseja criar a conta Firebase para ${email}?\n\nIsso permitirá login pela web.`)) {
+                    criarContaFirebaseParaUsuario(email, password, name);
+                }
+            }
+        }
+        
+        // Criar conta Firebase para usuário
+        async function criarContaFirebaseParaUsuario(email, password, name) {
+            if (!firebaseEnabled || !firebaseAuth) {
+                showNotification('Firebase não disponível', 'error');
+                return;
+            }
+            
+            try {
+                const result = await firebaseAuth.createUserWithEmailAndPassword(email, password);
+                await result.user.updateProfile({ displayName: name });
+                
+                // Deslogar do Firebase (só criamos a conta)
+                await firebaseAuth.signOut();
+                
+                showNotification(`Conta Firebase criada para ${email}!`, 'success');
+            } catch(erro) {
+                if (erro.code === 'auth/email-already-in-use') {
+                    showNotification('E-mail já tem conta Firebase', 'info');
+                } else {
+                    showNotification('Erro ao criar conta Firebase: ' + erro.message, 'error');
+                }
+            }
         }
         
         function verificarUsuariosCadastrados() {
