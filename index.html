@@ -1077,19 +1077,21 @@
         let currentUserData = null;
         let isSuperAdmin = false;
         
-        // Tentar carregar config salva
+        // Configuração do Firebase (RC EPI System)
+        const FIREBASE_CONFIG = {
+            apiKey: "AIzaSyAsyyvSx7p1B0W8R-B4TGZukk-nzCr99Sk",
+            authDomain: "rc-epi-system-4e47c.firebaseapp.com",
+            projectId: "rc-epi-system-4e47c",
+            storageBucket: "rc-epi-system-4e47c.firebasestorage.app",
+            messagingSenderId: "679187948868",
+            appId: "1:679187948868:web:10f47dafa41b085bcf2311"
+        };
+        
+        // Carregar config do Firebase
         function loadFirebaseConfig() {
-            const savedConfig = localStorage.getItem(FIREBASE_CONFIG_KEY);
-            if (savedConfig) {
-                try {
-                    const config = JSON.parse(savedConfig);
-                    initializeFirebase(config);
-                    return true;
-                } catch(e) {
-                    console.error('Erro ao carregar config:', e);
-                }
-            }
-            return false;
+            // Usar config embutida
+            initializeFirebase(FIREBASE_CONFIG);
+            return true;
         }
         
         // Inicializar Firebase
@@ -1274,7 +1276,7 @@
             e.preventDefault();
             
             const name = document.getElementById('register-name').value.trim();
-            const email = document.getElementById('register-email').value.trim();
+            const email = document.getElementById('register-email').value.trim().toLowerCase();
             const password = document.getElementById('register-password').value;
             const cnpj = document.getElementById('register-cnpj').value.replace(/\D/g, '');
             
@@ -1300,6 +1302,29 @@
                     ativo: true,
                     criadoEm: firebase.firestore.FieldValue.serverTimestamp()
                 });
+                
+                // Se for o email principal da RC Engenharia, adicionar como superadmin
+                if (email === 'contato@rcengenhariasst.com') {
+                    await db.collection('superadmins').doc(email).set({
+                        ativo: true,
+                        criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    console.log('Super admin criado automaticamente!');
+                }
+                
+                // Se informou CNPJ, criar empresa também
+                if (cnpj && cnpj.length === 14) {
+                    const empresaExiste = await db.collection('empresas').doc(cnpj).get();
+                    if (!empresaExiste.exists) {
+                        await db.collection('empresas').doc(cnpj).set({
+                            razaoSocial: name,
+                            nomeFantasia: name,
+                            plano: 'basico',
+                            ativo: true,
+                            criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    }
+                }
                 
                 showNotification('Conta criada com sucesso!', 'success');
             } catch(e) {
