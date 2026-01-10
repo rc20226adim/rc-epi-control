@@ -3063,7 +3063,8 @@
                 role: 'dev',
                 empresaVinculada: null,
                 permissions: ['all'],
-                loginTime: new Date().toISOString()
+                loginTime: new Date().toISOString(),
+                deviceId: getDeviceId()
             };
             localStorage.setItem(AUTH_KEY, JSON.stringify(currentUser));
             showMainApp();
@@ -3148,7 +3149,8 @@
                     permissions: ['all'],
                     loginTime: new Date().toISOString(),
                     firebaseUid: user.uid,
-                    isFirebaseUser: true
+                    isFirebaseUser: true,
+                    deviceId: getDeviceId()
                 };
                 
                 localStorage.setItem(AUTH_KEY, JSON.stringify(currentUser));
@@ -3203,7 +3205,8 @@
                     permissions: ['all'],
                     loginTime: new Date().toISOString(),
                     firebaseUid: user.uid,
-                    isFirebaseUser: true
+                    isFirebaseUser: true,
+                    deviceId: getDeviceId()
                 };
                 
                 localStorage.setItem(AUTH_KEY, JSON.stringify(currentUser));
@@ -3244,12 +3247,33 @@
         
         // ==================== FIM LOGIN POR E-MAIL ====================
         
+        // Gerar ID único do dispositivo
+        function getDeviceId() {
+            let deviceId = localStorage.getItem('epi-device-id');
+            if (!deviceId) {
+                deviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('epi-device-id', deviceId);
+            }
+            return deviceId;
+        }
+        
         // Verificar autenticação ao carregar
         function checkAuth() {
             const session = localStorage.getItem(AUTH_KEY);
             if (session) {
                 try {
                     currentUser = JSON.parse(session);
+                    
+                    // Verificar se a sessão é deste dispositivo
+                    const deviceId = getDeviceId();
+                    if (currentUser.deviceId && currentUser.deviceId !== deviceId) {
+                        // Sessão de outro dispositivo - exigir login novamente
+                        console.log('Sessão de outro dispositivo detectada');
+                        localStorage.removeItem(AUTH_KEY);
+                        showLoginScreen();
+                        return false;
+                    }
+                    
                     showMainApp();
                     return true;
                 } catch(e) {
@@ -3448,7 +3472,8 @@
                     role: user.role,
                     empresaVinculada: user.empresaVinculada || null,
                     permissions: user.permissions,
-                    loginTime: new Date().toISOString()
+                    loginTime: new Date().toISOString(),
+                    deviceId: getDeviceId()
                 };
                 
                 localStorage.setItem(AUTH_KEY, JSON.stringify(currentUser));
