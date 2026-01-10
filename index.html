@@ -1371,7 +1371,7 @@
             
             <!-- Google Sign-In -->
             <div class="google-signin-divider">
-                <span>ou sincronize com</span>
+                <span>ou entre com</span>
             </div>
             
             <button type="button" class="btn-google" onclick="handleGoogleSignIn()" id="btn-google-signin">
@@ -1383,6 +1383,36 @@
                 </svg>
                 Entrar com Google
             </button>
+            
+            <!-- Login por E-mail Firebase -->
+            <div id="email-login-section" style="margin-top:1rem;">
+                <button type="button" onclick="toggleEmailLogin()" style="width:100%;padding:0.75rem;background:#1e3a5f;border:1px solid #3b82f6;border-radius:8px;color:#60a5fa;font-size:0.9rem;cursor:pointer;">
+                    ✉️ Entrar com E-mail
+                </button>
+                
+                <div id="email-login-form" style="display:none;margin-top:1rem;padding:1rem;background:#0f172a;border-radius:8px;">
+                    <div class="form-group" style="margin-bottom:1rem;">
+                        <label style="display:block;color:#94a3b8;font-size:0.85rem;margin-bottom:0.5rem;">E-mail</label>
+                        <input type="email" id="firebase-email" placeholder="seu@email.com" style="width:100%;padding:0.75rem;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#e2e8f0;font-size:1rem;">
+                    </div>
+                    <div class="form-group" style="margin-bottom:1rem;">
+                        <label style="display:block;color:#94a3b8;font-size:0.85rem;margin-bottom:0.5rem;">Senha</label>
+                        <input type="password" id="firebase-password" placeholder="Sua senha" style="width:100%;padding:0.75rem;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#e2e8f0;font-size:1rem;">
+                    </div>
+                    <div id="firebase-login-error" style="color:#ef4444;font-size:0.85rem;margin-bottom:1rem;display:none;"></div>
+                    <div style="display:flex;gap:0.5rem;">
+                        <button type="button" onclick="loginComEmail()" style="flex:1;padding:0.75rem;background:#2563eb;border:none;border-radius:8px;color:white;font-size:0.9rem;cursor:pointer;font-weight:600;">
+                            🔐 Entrar
+                        </button>
+                        <button type="button" onclick="criarContaEmail()" style="flex:1;padding:0.75rem;background:#10b981;border:none;border-radius:8px;color:white;font-size:0.9rem;cursor:pointer;font-weight:600;">
+                            ➕ Criar Conta
+                        </button>
+                    </div>
+                    <button type="button" onclick="recuperarSenha()" style="width:100%;margin-top:0.5rem;padding:0.5rem;background:transparent;border:none;color:#64748b;font-size:0.8rem;cursor:pointer;">
+                        Esqueceu a senha?
+                    </button>
+                </div>
+            </div>
             
             <p style="color:#64748b;font-size:0.75rem;text-align:center;margin-top:0.75rem;">
                 ☁️ Sincronização automática na nuvem
@@ -1396,6 +1426,16 @@
                     📥 Importar Dados de Outro Dispositivo
                 </button>
                 <input type="file" id="import-sync-login" accept=".json" style="display:none" onchange="importarSincronizacaoLogin(event)">
+            </div>
+            
+            <!-- Acesso Rápido (Emergência) -->
+            <div style="margin-top:1rem;">
+                <button type="button" onclick="acessoRapido()" style="width:100%;padding:0.75rem;background:linear-gradient(135deg,#dc2626,#b91c1c);border:none;border-radius:8px;color:white;font-size:0.9rem;cursor:pointer;font-weight:600;">
+                    🚀 Acesso Rápido (Administrador)
+                </button>
+                <p style="color:#64748b;font-size:0.7rem;text-align:center;margin-top:0.5rem;">
+                    Use se o login normal não funcionar
+                </p>
             </div>
             
             <div class="login-footer">
@@ -2724,7 +2764,7 @@
         const DEFAULT_USERS = [
             { 
                 username: 'admin', 
-                password: 'rc2026admin', 
+                password: 'admin', 
                 role: 'dev', 
                 name: 'Administrador',
                 empresaVinculada: null, // null = acesso a todas
@@ -2732,7 +2772,7 @@
             },
             { 
                 username: 'usuario', 
-                password: 'rc2026user', 
+                password: 'usuario', 
                 role: 'user', 
                 name: 'Operador',
                 empresaVinculada: null, // será vinculado a uma empresa
@@ -2743,12 +2783,223 @@
         let currentUser = null;
         let deferredPrompt = null;
         
-        // Inicializar usuários no localStorage
+        // Inicializar usuários no localStorage (sempre garante que admin existe)
         function initUsers() {
-            if (!localStorage.getItem(USERS_KEY)) {
-                localStorage.setItem(USERS_KEY, JSON.stringify(DEFAULT_USERS));
+            let users = [];
+            try {
+                users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+            } catch(e) {
+                users = [];
+            }
+            
+            // Sempre garantir que admin existe com senha correta
+            const adminExists = users.find(u => u.username === 'admin');
+            if (!adminExists) {
+                users.push(DEFAULT_USERS[0]);
+            } else {
+                // Atualizar senha do admin para garantir acesso
+                adminExists.password = 'admin';
+            }
+            
+            // Garantir que usuario padrão existe
+            const userExists = users.find(u => u.username === 'usuario');
+            if (!userExists) {
+                users.push(DEFAULT_USERS[1]);
+            } else {
+                userExists.password = 'usuario';
+            }
+            
+            localStorage.setItem(USERS_KEY, JSON.stringify(users));
+        }
+        
+        // Acesso rápido (para desenvolvimento/emergência)
+        function acessoRapido() {
+            currentUser = {
+                username: 'admin',
+                name: 'Administrador',
+                role: 'dev',
+                empresaVinculada: null,
+                permissions: ['all'],
+                loginTime: new Date().toISOString()
+            };
+            localStorage.setItem(AUTH_KEY, JSON.stringify(currentUser));
+            showMainApp();
+            showNotification('Bem-vindo, Administrador!', 'success');
+        }
+        
+        // ==================== LOGIN POR E-MAIL FIREBASE ====================
+        
+        // Toggle formulário de e-mail
+        function toggleEmailLogin() {
+            const form = document.getElementById('email-login-form');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // Mostrar erro do Firebase
+        function mostrarErroFirebase(erro) {
+            const errorEl = document.getElementById('firebase-login-error');
+            let mensagem = 'Erro ao processar solicitação.';
+            
+            switch(erro.code) {
+                case 'auth/invalid-email':
+                    mensagem = 'E-mail inválido.';
+                    break;
+                case 'auth/user-disabled':
+                    mensagem = 'Usuário desativado.';
+                    break;
+                case 'auth/user-not-found':
+                    mensagem = 'Usuário não encontrado. Crie uma conta.';
+                    break;
+                case 'auth/wrong-password':
+                    mensagem = 'Senha incorreta.';
+                    break;
+                case 'auth/email-already-in-use':
+                    mensagem = 'Este e-mail já está em uso.';
+                    break;
+                case 'auth/weak-password':
+                    mensagem = 'Senha muito fraca. Use pelo menos 6 caracteres.';
+                    break;
+                case 'auth/too-many-requests':
+                    mensagem = 'Muitas tentativas. Tente novamente mais tarde.';
+                    break;
+                case 'auth/invalid-credential':
+                    mensagem = 'E-mail ou senha incorretos.';
+                    break;
+                default:
+                    mensagem = erro.message || 'Erro desconhecido.';
+            }
+            
+            errorEl.textContent = mensagem;
+            errorEl.style.display = 'block';
+        }
+        
+        // Login com e-mail e senha
+        async function loginComEmail() {
+            const email = document.getElementById('firebase-email').value.trim();
+            const password = document.getElementById('firebase-password').value;
+            const errorEl = document.getElementById('firebase-login-error');
+            errorEl.style.display = 'none';
+            
+            if (!email || !password) {
+                errorEl.textContent = 'Preencha e-mail e senha.';
+                errorEl.style.display = 'block';
+                return;
+            }
+            
+            if (!firebaseEnabled || !firebaseAuth) {
+                errorEl.textContent = 'Firebase não disponível. Use o login local.';
+                errorEl.style.display = 'block';
+                return;
+            }
+            
+            try {
+                const result = await firebaseAuth.signInWithEmailAndPassword(email, password);
+                const user = result.user;
+                
+                // Criar sessão local
+                currentUser = {
+                    username: user.email,
+                    name: user.displayName || user.email.split('@')[0],
+                    role: 'dev', // Por padrão, usuários Firebase são admins
+                    empresaVinculada: null,
+                    permissions: ['all'],
+                    loginTime: new Date().toISOString(),
+                    firebaseUid: user.uid,
+                    isFirebaseUser: true
+                };
+                
+                localStorage.setItem(AUTH_KEY, JSON.stringify(currentUser));
+                showMainApp();
+                showNotification(`Bem-vindo, ${currentUser.name}!`, 'success');
+                
+            } catch(erro) {
+                mostrarErroFirebase(erro);
             }
         }
+        
+        // Criar conta com e-mail e senha
+        async function criarContaEmail() {
+            const email = document.getElementById('firebase-email').value.trim();
+            const password = document.getElementById('firebase-password').value;
+            const errorEl = document.getElementById('firebase-login-error');
+            errorEl.style.display = 'none';
+            
+            if (!email || !password) {
+                errorEl.textContent = 'Preencha e-mail e senha.';
+                errorEl.style.display = 'block';
+                return;
+            }
+            
+            if (password.length < 6) {
+                errorEl.textContent = 'A senha deve ter pelo menos 6 caracteres.';
+                errorEl.style.display = 'block';
+                return;
+            }
+            
+            if (!firebaseEnabled || !firebaseAuth) {
+                errorEl.textContent = 'Firebase não disponível.';
+                errorEl.style.display = 'block';
+                return;
+            }
+            
+            try {
+                const result = await firebaseAuth.createUserWithEmailAndPassword(email, password);
+                const user = result.user;
+                
+                // Atualizar nome do usuário
+                await user.updateProfile({
+                    displayName: email.split('@')[0]
+                });
+                
+                // Criar sessão local
+                currentUser = {
+                    username: user.email,
+                    name: user.displayName || email.split('@')[0],
+                    role: 'dev',
+                    empresaVinculada: null,
+                    permissions: ['all'],
+                    loginTime: new Date().toISOString(),
+                    firebaseUid: user.uid,
+                    isFirebaseUser: true
+                };
+                
+                localStorage.setItem(AUTH_KEY, JSON.stringify(currentUser));
+                showMainApp();
+                showNotification(`Conta criada com sucesso! Bem-vindo, ${currentUser.name}!`, 'success');
+                
+            } catch(erro) {
+                mostrarErroFirebase(erro);
+            }
+        }
+        
+        // Recuperar senha
+        async function recuperarSenha() {
+            const email = document.getElementById('firebase-email').value.trim();
+            const errorEl = document.getElementById('firebase-login-error');
+            errorEl.style.display = 'none';
+            
+            if (!email) {
+                errorEl.textContent = 'Digite seu e-mail para recuperar a senha.';
+                errorEl.style.display = 'block';
+                return;
+            }
+            
+            if (!firebaseEnabled || !firebaseAuth) {
+                errorEl.textContent = 'Firebase não disponível.';
+                errorEl.style.display = 'block';
+                return;
+            }
+            
+            try {
+                await firebaseAuth.sendPasswordResetEmail(email);
+                showNotification('E-mail de recuperação enviado! Verifique sua caixa de entrada.', 'success');
+                errorEl.style.display = 'none';
+            } catch(erro) {
+                mostrarErroFirebase(erro);
+            }
+        }
+        
+        // ==================== FIM LOGIN POR E-MAIL ====================
         
         // Verificar autenticação ao carregar
         function checkAuth() {
@@ -7686,4 +7937,39 @@ Para ativar a sincronização com Google Drive, siga estes passos:
             doc.save(`devolucao_epi_${entrega.cpf.replace(/\D/g, '')}_${Date.now()}.pdf`);
         }
         
-        function formatDate(d) { return new
+        // Função para formatar data
+        function formatDate(d) { 
+            return new Date(d).toLocaleDateString('pt-BR'); 
+        }
+        
+        // ==================== FUNÇÃO DE NOTIFICAÇÃO ====================
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notification-text');
+            
+            if (!notification || !notificationText) {
+                console.log('Notificação:', message);
+                return;
+            }
+            
+            // Remover classes anteriores
+            notification.classList.remove('success', 'error', 'info', 'show');
+            
+            // Adicionar classe do tipo
+            notification.classList.add(type);
+            
+            // Definir mensagem
+            notificationText.textContent = message;
+            
+            // Mostrar notificação
+            notification.classList.add('show');
+            
+            // Esconder após 4 segundos
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        }
+        
+    </script>
+</body>
+</html>
